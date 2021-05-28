@@ -8,7 +8,7 @@ The sdnbox is a openflow based network management platform, developed by vnetlab
 
 # Features
 
-1. manipulate already existing underlying openflow network.
+1. manipulate underlying openflow network.
 2. create custom network experiment script.
 
 # Content Catalog
