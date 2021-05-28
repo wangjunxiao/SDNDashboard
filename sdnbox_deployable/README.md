@@ -1,7 +1,7 @@
 # Prerequisites
 
 1. you need to install a db server such as mysql server, provides db store service for sdnbox.  
-2. underlying openflow network need to consist of ofcontroller, ofswitch and host. you can choose floodlight or ryu this like open source ofcontroller to do this work. as for ofswitch and host, you can simply choose mininet to substitute for them, of course, can also use physical ofsiwitch and host.
+2. underlying openflow network need to consist of ofcontroller, ofswitch and host. you can choose open source ofcontroller like floodlight or ryu to do this work. as for ofswitch and host, you can simply choose mininet to substitute for them, of course, can also use physical ofsiwitch and host.
 3. you need to install jdk1.7 32bit version.
 
 # Configuration
