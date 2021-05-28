@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<utils:MyTitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:utils="utils.*"
+					 xmlns:cdg="view.*"
+					 layout="vertical"
+					 initialize="init1()"
+					 width="850" height="600" 
+					 close="this.parent.removeChild(this)" showCloseButton="true" 
+					 verticalScrollPolicy="auto" horizontalScrollPolicy="auto" dropShadowVisible="true">
+	
+	<fx:Declarations>		
+		<mx:RemoteObject id="AclRuleService" destination="AclRuleService" >  
+			<mx:method name="QueryRule" result="QueryResult(event)"/>
+		</mx:RemoteObject>	
+	</fx:Declarations>
+	
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import Components.Controller;
+			import Components.Rule;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.rpc.events.ResultEvent;
+			
+			
+			//controller rules
+			[Bindable]
+			private var rulelist_this:ArrayCollection=new ArrayCollection();
+			//full DataGrid
+			//current rule
+			private var switchID:int;
+			
+		
+			protected function init1():void{
+				
+				var switchDp_id:String;
+				switchDp_id=FlexGlobals.topLevelApplication.activeItem.getDp_id();
+				
+				var controllerType:String;
+				
+				var controllerId:int;
+				var controllertypeId:int//controller type id  1:Floodlight  0:Ryu
+				controllerId=FlexGlobals.topLevelApplication.activeItem.getCrl_id();
+				
+				var temp:ArrayCollection = FlexGlobals.topLevelApplication.ac_controller;
+				for(var i:int = 0;i<temp.length;i++){
+					if(temp[i].id==controllerId){
+						controllerType=temp[i].type;
+						break;
+					}
+				}
+				//set switch DP_id and related controller type
+				if(controllerType=="Floodlight")
+				{
+					controllertypeId=1;
+					//Alert.show(switchDp_id);
+					var arr:Array=new Array();
+					arr = switchDp_id.split(':');
+					switchDp_id= arr[0].toString();
+					for(var f_num:int = 1;f_num<8;f_num++)
+					{
+						switchDp_id=switchDp_id+arr[f_num].toString();
+					}
+				}
+				else if(controllerType=="Ryu")
+				{
+					controllertypeId=0;
+					switchDp_id="000000000000000"+switchDp_id;
+				}
+				
+				//Alert.show(""+controllerId);
+				//Alert.show(""+switchDp_id);
+				AclRuleService.QueryRule(switchDp_id,controllertypeId,controllerId);
+				this.title="switch"+"-rule";
+			}
+			
+			
+			//call once when popping up window, then call at the moment of zooming
+			protected function titleWindowResized(event:Event):void{
+				
+				this.addEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+			//finished when zooming once, call at the moment of mouse up
+			protected function resizeCompleted(event:MouseEvent):void{
+				
+				this.removeEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Script>
+			public function QueryResult(event:ResultEvent):void{
+				rulelist_this = event.result as ArrayCollection;
+				rulelistDG.InitData(rulelist_this);
+				
+		}
+	</fx:Script>	
+	
+	
+	<!--  pageCount: entry number per page,default 20 -->
+	<cdg:CustomDataGrid id="rulelistDG" width="1000">
+		<cdg:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="ruleid" headerText="Rule_Id"></s:GridColumn>   
+				<!--    	<s:GridColumn dataField="switch_id" headerText="SwitchID"></s:GridColumn>   -->
+				<s:GridColumn dataField="src_ip" headerText="Src_Ip"></s:GridColumn>
+				<s:GridColumn dataField="dst_ip" headerText="Dst_Ip"></s:GridColumn>
+				<s:GridColumn dataField="action" headerText="Action"></s:GridColumn>
+				<s:GridColumn dataField="nw_proto" headerText="Nw_Proto"></s:GridColumn>
+				<s:GridColumn dataField="tp_dst" headerText="Tp_dst"></s:GridColumn>
+			</s:ArrayList>
+		</cdg:columns>
+	</cdg:CustomDataGrid>
+	
+	
+</utils:MyTitleWindow>

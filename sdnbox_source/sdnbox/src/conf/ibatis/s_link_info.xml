@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Link">
+
+	<typeAlias alias="Link" type="cn.dlut.entity.Link" />
+
+	<resultMap class="Link" id="Link">
+		<result property="id" column="id" />
+		<result property="src_switch_id" column="src_switch_id" />
+		<result property="src_port_id" column="src_port_id" />
+		<result property="dst_switch_id" column="dst_switch_id" />
+		<result property="dst_port_id" column="dst_port_id" />
+		<result property="ctime" column="ctime" />
+	</resultMap>
+
+	<select id="getAll" resultClass="Link">
+		select * from s_link_info
+	</select>
+
+	<!-- select by id -->
+	<select id="getById" resultClass="Link" parameterClass="Integer">
+		select *
+		from s_link_info
+		where id=#id# 
+	</select>
+
+	<!-- delete by id -->
+	<delete id="delById" parameterClass="Integer">
+		delete from s_link_info
+		where
+		id=#id# 
+	</delete>
+	
+	<!-- delete by ctrl ID -->
+	<delete id="delByCtrlId" parameterClass="Integer">
+		delete from s_link_info
+		where
+		src_switch_id in (select id from s_switch_info where s_switch_info.ctrl_id=#ctrl_id#) 
+	</delete>	
+	
+	<!-- delete all entries ,
+	     2015-12-08 modified from delete to truncate-->
+	<delete id="delAll">
+		<!-- delete from s_link_info -->
+		truncate s_link_inf
+	</delete>
+
+	<!-- insert -->
+	<insert id="insert" parameterClass="Link">
+		insert into
+		s_link_info(src_switch_id,src_port_id,dst_switch_id,dst_port_id,ctime)
+		values(#src_switch_id#,#src_port_id#,#dst_switch_id#,#dst_port_id#,#ctime#)
+	</insert>
+
+</sqlMap>

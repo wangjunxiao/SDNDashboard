@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE sqlMapConfig
+	PUBLIC "-//ibatis.apache.org//DTD sql Map Config 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+<sqlMapConfig>
+	<settings cacheModelsEnabled="false"
+			  enhancementEnabled="false"
+			  lazyLoadingEnabled="false"
+			  errorTracingEnabled="true"
+			  maxRequests="32"
+			  maxSessions="10" 
+			  maxTransactions="5" 
+			  useStatementNamespaces="true" />
+	
+	<sqlMap resource="ibatis/s_controller_info.xml" />
+	<sqlMap resource="ibatis/s_switch_info.xml" />
+	<sqlMap resource="ibatis/s_port_info.xml" />
+	<sqlMap resource="ibatis/s_port_stats.xml" />
+	<sqlMap resource="ibatis/s_flow_info.xml" />
+	<sqlMap resource="ibatis/s_link_info.xml" />
+	<sqlMap resource="ibatis/s_host_info.xml" />
+
+	<sqlMap resource="ibatis/ryu_meter_info.xml"/>
+	<sqlMap resource="ibatis/ryu_meterconfig_info.xml"/>
+	<sqlMap resource="ibatis/ryu_meterfeatures_info.xml"/>
+	<sqlMap resource="ibatis/ryu_groupstats_info.xml"/>
+	<sqlMap resource="ibatis/ryu_groupdesc_info.xml"/>
+	<sqlMap resource="ibatis/ryu_groupfeatures_info.xml"/>
+
+</sqlMapConfig>

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<utils:MyTitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:utils="utils.*"
+					 xmlns:cdg="view.*"
+					 layout="vertical"
+					 initialize="init1()" width="850" height="600" 
+					 close="this.parent.removeChild(this)" showCloseButton="true"
+					 verticalScrollPolicy="auto" horizontalScrollPolicy="auto" dropShadowVisible="true">
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.KeepOnly;
+			
+			[Bindable]
+			private var filter_attr:ArrayCollection = new ArrayCollection(["All"]);			
+			[Bindable]
+			private var filter_valuelist:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var list_ac:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var filterlist:ArrayCollection=new ArrayCollection();
+			
+			
+			protected function init1():void{
+				list_ac=FlexGlobals.topLevelApplication.ac_flow;
+				this.title="flow table";
+				this.addEventListener(Event.RESIZE, titleWindowResized);
+				getdata_all();
+				listDG.InitData(filterlist);
+			}
+			
+			//call once when popping up window, then call at the moment of zooming
+			protected function titleWindowResized(event:Event):void{
+				
+				this.addEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+			//finished when zooming once, call at the moment of mouse up
+			protected function resizeCompleted(event:MouseEvent):void{
+				
+				this.removeEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			
+			public function getdata_all():void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var num:int = 0;num<list_ac.length;num++){
+					filterlist.addItem(list_ac[num]);
+				}
+			}
+			/*
+			public function getdata_id(id:int):void{
+			var switchid:int;
+			if(filterlist.length!=0)
+			filterlist.removeAll();
+			for(var s_num:int = 0;s_num<switchlist_ac.length;s_num++){
+			switchid=switchlist_ac[s_num].id;
+			if(switchid==id)
+			filterlist.addItem(switchlist_ac[s_num]);
+			}
+			}
+			
+			public function getdata_dpid(dpid:String):void{
+			if(filterlist.length!=0)
+			filterlist.removeAll();
+			for(var s_num:int = 0;s_num<switchlist_ac.length;s_num++){
+			var dp_id:String=switchlist_ac[s_num].dp_id;
+			if(dp_id==dpid)
+			filterlist.addItem(switchlist_ac[s_num]);
+			}
+			}
+			
+			*/ 
+			private function filterHandler(filter_attri:String):void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				switch(filter_attri){
+					case "All":
+						getdata_all();
+						break;
+					/*				case "SwitchID":
+					getdata_id(filter_value.selectedItem as int);
+					break;
+					case "DatapathID":
+					getdata_dpid(filter_value.selectedItem as String);
+					break;
+				*/			}
+				listDG.InitData(filterlist);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			private function filter_attri_valueCommitHandler():void{
+				var filter_attri:String=filter_attri.selectedItem;
+				var num:int;
+				if(filter_valuelist.length!=0)
+					filter_valuelist.removeAll();
+				switch(filter_attri){
+					case "All":
+						filter_value.dataProvider=filter_valuelist;
+						break;
+	/*				case "SwitchID":
+					for(s_num = 0;s_num<switchlist_ac.length;s_num++){
+					filter_valuelist.addItem(switchlist_ac[s_num].id);
+					}
+					filter_value.dataProvider=KeepOnly(filter_valuelist) as ArrayCollection;
+					break;
+					case "DatapathID":
+					for(s_num = 0;s_num<switchlist_ac.length;s_num++){
+					filter_valuelist.addItem(switchlist_ac[s_num].dp_id);
+					}
+					filter_value.dataProvider=KeepOnly(filter_valuelist) as ArrayCollection;
+					break;
+	*/			}				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Spacer height="5"/>
+	
+	<s:Group>
+		<s:layout>
+			<s:HorizontalLayout/>
+		</s:layout>
+		
+		<s:DropDownList id="filter_attri" dataProvider="{filter_attr}" 
+						selectedItem="{filter_attr.getItemAt(0)}" valueCommit="filter_attri_valueCommitHandler()"/>
+		<s:DropDownList id="filter_value" width="200"/>
+		<s:Button id="filter" label="filter" fontWeight="bold" 
+				  click="filterHandler(filter_attri.selectedItem.toString())"/>
+		<s:Spacer width="20"/>
+	</s:Group>
+	
+	<!--  pageCount: entry number per page,default 20 -->
+	<cdg:CustomDataGrid id="listDG" width="3500">
+		<cdg:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="id" headerText="FlowID"></s:GridColumn>   
+				<s:GridColumn dataField="switch_id" headerText="SwitchID"></s:GridColumn>
+				<s:GridColumn dataField="table_id" headerText="TableID"></s:GridColumn>
+				<s:GridColumn dataField="byte_count" headerText="ByteCount"></s:GridColumn>
+				<s:GridColumn dataField="packet_count" headerText="PacketCount"></s:GridColumn>
+				<s:GridColumn dataField="idle_timeout" headerText="IdleTimeout"></s:GridColumn>
+				<s:GridColumn dataField="hard_timeout" headerText="HardTimeout"></s:GridColumn>
+				<s:GridColumn dataField="duration_sec" headerText="DurationSecond"></s:GridColumn>
+				<s:GridColumn dataField="duration_nsec" headerText="DurationNanosecond"></s:GridColumn>
+				<s:GridColumn dataField="priority" headerText="Priority"></s:GridColumn> 
+				<s:GridColumn dataField="cookie" headerText="Cookie"></s:GridColumn> 
+				<s:GridColumn dataField="dl_type" headerText="DlType"></s:GridColumn>
+				<s:GridColumn dataField="dl_src" headerText="DlSource"></s:GridColumn>
+				<s:GridColumn dataField="dl_dst" headerText="DlDestination"></s:GridColumn>
+				<s:GridColumn dataField="dl_vlan" headerText="DlVlan"></s:GridColumn>
+				<s:GridColumn dataField="nw_proto" headerText="NwProtocol"></s:GridColumn>
+				<s:GridColumn dataField="nw_tos" headerText="NwTos"></s:GridColumn>
+				<s:GridColumn dataField="nw_src" headerText="NwSource"></s:GridColumn>
+				<s:GridColumn dataField="nw_dst" headerText="NwDestination"></s:GridColumn>
+				<s:GridColumn dataField="nw_src_masklen" headerText="NwSourceMasklen"></s:GridColumn>
+				<s:GridColumn dataField="nw_dst_masklen" headerText="NwDestinationMasklen"></s:GridColumn>
+				<s:GridColumn dataField="tp_src" headerText="TpSource"></s:GridColumn>
+				<s:GridColumn dataField="tp_dst" headerText="TpDestination"></s:GridColumn>
+				<s:GridColumn dataField="in_port" headerText="InPort"></s:GridColumn>
+				<s:GridColumn dataField="action" headerText="Action"></s:GridColumn>
+				<s:GridColumn dataField="ctime" headerText="CreatedTime"></s:GridColumn>
+			</s:ArrayList>
+		</cdg:columns>
+	</cdg:CustomDataGrid>
+	
+	
+	
+</utils:MyTitleWindow>

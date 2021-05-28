@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:item="Components.*"
+			   usePreloader="false"
+			   initialize="init()"
+			   creationComplete="application_creationCompleteHandler()">
+	
+	<fx:Declarations>
+		<mx:RemoteObject id="dbInfo_getAll_Service" destination="dbInfo_getAll_Service" >  
+			<mx:method name="controller_getAll" fault="faultHandler(event)" result="controller_resultHandler(event)"/>
+			<mx:method name="switch_getAll" fault="faultHandler(event)" result="switch_resultHandler(event)"/>
+			<mx:method name="flow_getAll" fault="faultHandler(event)" result="flow_resultHandler(event)"/>
+			<mx:method name="port_getAll" fault="faultHandler(event)" result="port_resultHandler(event)"/>
+			<mx:method name="host_getAll" fault="faultHandler(event)" result="host_resultHandler(event)"/>
+			<mx:method name="link_getAll" fault="faultHandler(event)" result="link_resultHandler(event)"/>				
+			<mx:method name="portStats_getAll" fault="faultHandler(event)" result="portStats_resultHandler(event)"/>				
+			<mx:method name="link_getAll" fault="faultHandler(event)" result="link_resultHandler(event)"/>			
+		</mx:RemoteObject>
+	</fx:Declarations> 
+	
+	<fx:Declarations>
+		<mx:RemoteObject id="show_firewall_enable" destination="show_firewall_enable" >
+			<mx:method name="FireWallEnable" fault="faultHandler(event)" result="firewall_resultHandler(event)"/>
+		</mx:RemoteObject>
+	</fx:Declarations> 
+	
+	
+	
+	<fx:Script source="../dataprovider/define.as"/>	
+	
+	<fx:Script source="../dataprovider/parseprocessing.as"/>
+	
+	<fx:Script source="../utils/loading.as"/>	
+	
+	<fx:Script source="../dataprovider/output.as"/>	
+	
+	<fx:Script source="../dataprovider/Listshow.as"/>
+	
+	<fx:Script source="../dataprovider/xmldata.as"/>	
+	
+	<fx:Script source="../dataprovider/getdata.as"/>
+	
+	<fx:Script source="../dataprovider/DrawFatTree.as"/>	
+
+	<fx:Script>
+		<![CDATA[	
+			import mx.managers.CursorManagerPriority;
+			
+			private function application_creationCompleteHandler():void
+			{
+				app_iscomplete=true;
+				counter2++;
+				if(topo_iscomplete && counter2==2){
+					counter2--;
+					networkPanel_creationCompleteHandler();
+					PopUpManager.removePopUp(img);
+					//CoordinatorTopoCompleteHandler();
+				}
+				parentDisplayObject=this;
+			}
+			
+			/** finish component configuration
+			 * parameter obj : required component
+			 * parameter x_value : component location axis_X
+			 * parameter y_value : component location axis_Y
+			 * parameter str1 : component label(String under the component)
+			 * return ： null
+			 * */
+			private function config(obj:Item_image,x_value:Number,y_value:Number,str1:String):void{				
+				obj.setXY(x_value,y_value);
+				obj.settitle(str1);
+			}
+			
+			/**
+			 * transform from mouse to pen
+			 * parameter ： null
+			 * return ：null
+			 *  */			
+			private function cursorChange():void
+			{
+				CursorManager.setCursor(imageCursor,CursorManagerPriority.HIGH,-7,-27);
+			}
+			
+			/**entry selected event handle
+			 * parameter event ： selected event
+			 * return ：null*/			
+			private function menubar_itemClickHandler(event:MenuEvent):void
+			{				
+				if(event.item.@label=="export topology in Topo")
+					confirm_clickHandler(event,T_C_obj,T_S_obj,T_H_obj);
+				
+				if(event.item.@label=="export topology in CreateTopo")
+					confirm_clickHandler(event,C_obj,S_obj,H_obj);
+				
+				
+				if(event.item.@label=="controller")
+					listshowHandler(1);
+				
+				if(event.item.@label=="switch")
+					listshowHandler(2);
+				
+				if(event.item.@label=="port")
+					listshowHandler(3);
+				
+				if(event.item.@label=="link")
+					listshowHandler(4);
+				
+				if(event.item.@label=="flow table")
+					listshowHandler(5);
+				
+				if(event.item.@label=="host")
+					listshowHandler(6);
+				if(event.item.@label=="add controller")
+					listshowHandler(7);
+				if(event.item.@label=="remove controller")
+					listshowHandler(8);
+			}
+			
+			private function TGF(event:MenuEvent):void{
+				if(event.item.@label=="FatTree")
+				{
+					myLoader  = new URLLoader(FatTreeXMLURL);
+					isBCubeSel = 0;
+					isFatTreeSel = 1;
+					detect();									
+					if(isXMLLoaded==1){							
+						DrawFatTree();							
+					}					 
+				}
+				
+				if(event.item.@label=="BCube")
+				{
+					myLoader  = new URLLoader(BCubeXMLURL);
+					isFatTreeSel = 0;
+					isBCubeSel = 1;
+					detect();									
+					if(isXMLLoaded==1){							
+						DrawFatTree();							
+					}					 
+				}
+				
+				if(event.item.@label=="clear"){
+					if(network_group != null){
+						H_obj.removeAll();
+						S_obj.removeAll();
+						C_obj.removeAll();
+						network_group.removeAllElements();	
+					}
+				}
+			}
+			
+			private function buttonContainer_creationCompleteHandler(event:FlexEvent):void 
+			{
+				delbtn.addEventListener(MouseEvent.CLICK,delbtnHandler);
+			}
+			
+			private function delbtnHandler(event:MouseEvent):void
+			{
+				if(selectedObj!=null){
+					selectedObj.Delete();
+					selectedObj=null;
+				}		
+			}
+			
+			private function tree_creationCompleteHandler(event:FlexEvent):void 
+			{ 
+				//validateNow();   redraw
+				objectTree.expandItem(library.getItemAt(0), true); 
+				objectTree.expandItem(library.getItemAt(1), true); 
+				objectTree.addEventListener(DragEvent.DRAG_START,treeDragStartHandler);
+				objectTree.addEventListener(MouseEvent.CLICK,ClickHandler);
+			} 
+			
+			private function ClickHandler(event:MouseEvent):void
+			{
+				previewURL= event.currentTarget.selectedItem.@preview_url;
+				/*	
+				source url represents the absolute path with main swf after publishing the project, instead of the relative path with main mxml or as.
+				while, embed url represents the relative path with main mxml or as.
+				*/
+				previewImage.source=previewURL;
+				if(previewURL=="img/ethernet.jpg"){
+					isDraw=true;
+					isMouseDown=false;
+					cursorChange();
+				}
+				else
+					CursorManager.removeAllCursors();
+			}
+			
+			
+			private function treeDragStartHandler(event:MouseEvent):void
+			{
+				drag_start_obj=event.currentTarget.selectedItem.@preview_url;
+			}
+			
+			
+			private function networkPanel_creationCompleteHandler():void 
+			{ 
+				//event:FlexEvent;	
+				topo_group.removeAllElements();
+				Topo.addEventListener(MouseEvent.MOUSE_UP, netwokrPanel_MouseUpHandler);
+				Topo.addEventListener(MouseEvent.MOUSE_MOVE, netwokrPanel_MouseMoveHandler);
+				
+				//topology display——————————————————————————	
+				
+				
+				for(var c_num:int = 0;c_num<ac_controller.length;c_num++)
+					add_controller(ac_controller[c_num],c_num);
+				
+				
+				
+				for(var s_num:int = 0;s_num<ac_switch.length;s_num++)
+					add_switch(ac_switch[s_num],s_num);
+				
+				
+				for(var h_num:int = 0; h_num<ac_host.length; h_num++)
+					add_host(ac_host[h_num],h_num);
+				
+				for(var C_num:int = 0; C_num<T_C_obj.length;C_num++){
+					for(var S_num:int = 0; S_num<T_S_obj.length;S_num++){
+						if(T_S_obj[S_num].Crl_id==T_C_obj[C_num].getCon_id())
+							add_link(T_C_obj[C_num],T_S_obj[S_num]);
+					}
+				}
+				
+				for(var l_num:int = 0;l_num<ac_link.length; l_num++){
+					var find_num:int = 0;
+					for(var S_num3:int = 0;S_num3<T_S_obj.length; S_num3++){
+						if(T_S_obj[S_num3].Switch_id==ac_link[l_num].src_switch_id){
+							var src_num:int = S_num3;
+							find_num++;
+							if(find_num==2)
+								break;
+							else
+								continue;
+						}
+						
+						if(T_S_obj[S_num3].Switch_id==ac_link[l_num].dst_switch_id){
+							var dst_num:int = S_num3;
+							find_num++;
+							if(find_num==2)
+								break;
+							else
+								continue;
+						}
+						
+					}
+					add_link(T_S_obj[src_num],T_S_obj[dst_num]);
+				}				
+				
+				for(var S_num1:int = 0;S_num1<T_S_obj.length; S_num1++){
+					for(var H_num:int = 0;H_num<T_H_obj.length; H_num++){
+						if(T_S_obj[S_num1].Switch_id==T_H_obj[H_num].switch_ID)
+							add_link(T_S_obj[S_num1],T_H_obj[H_num]);
+					}
+				}
+			}
+			
+			private function add_controller(c_obj:Object,cN:int):void
+			{
+				var c_item:Controller = new Controller();				
+				config(c_item,550-cN*90,100,c_obj.type);				
+				c_item.setCon_id(c_obj.id);
+				c_item.setCon_type(c_obj.type);
+				c_item.setCon_name("c"+cN);
+				T_C_obj.addItem(c_item);				
+				c_item.addEventListener(MouseEvent.MOUSE_DOWN, imageMouseDownHandler);
+				c_item.addEventListener(MouseEvent.MOUSE_UP, imageMouseUpHandler);
+				c_item.addEventListener(MouseEvent.MOUSE_OVER, imageMouseOverHandler);  
+				topo_group.addElement(c_item);
+			}
+			
+			
+			private function add_switch(s_obj:Object,sN:int):void
+			{	
+				var s_item:Switch = new Switch();					
+				config(s_item,895-((sN%9)*90),195+(int(sN/9)*90),s_obj.dp_id);
+				s_item.setSwitch_id(s_obj.id);
+				s_item.setCrl_id(s_obj.ctrl_id);
+				s_item.setDp_id(s_obj.dp_id);
+				s_item.setSwitch_name("s"+sN);
+				T_S_obj.addItem(s_item);
+				s_item.addEventListener(MouseEvent.MOUSE_DOWN, imageMouseDownHandler);
+				s_item.addEventListener(MouseEvent.MOUSE_UP, imageMouseUpHandler);
+				s_item.addEventListener(MouseEvent.MOUSE_OVER, imageMouseOverHandler);  
+				topo_group.addElement(s_item);
+			}
+			
+			
+			private function add_host(h_obj:Object,hN:int):void
+			{
+				var h_item:Host = new Host();				
+				config(h_item,815-hN*70,295,h_obj.ip_addr);
+				h_item.setHost_ID(h_obj.id);
+				h_item.setHost_Name("h"+hN);
+				h_item.setMac_Add(h_obj.mac_addr);
+				h_item.setHost_IP(h_obj.ip_addr);
+				h_item.setSwitch_ID(h_obj.switch_id);
+				T_H_obj.addItem(h_item);
+				h_item.addEventListener(MouseEvent.MOUSE_DOWN, imageMouseDownHandler);
+				h_item.addEventListener(MouseEvent.MOUSE_UP, imageMouseUpHandler);
+				h_item.addEventListener(MouseEvent.MOUSE_OVER, imageMouseOverHandler);  
+				topo_group.addElement(h_item);
+			}
+			
+			private function add_link(F_obj:Item_image,T_obj:Item_image):void
+			{
+				var link:Link = new Link(F_obj, T_obj);
+				var childrenLinks:ArrayCollection =F_obj.getChildrenLinks();
+				childrenLinks.addItem(link);					
+				var parentLink:ArrayCollection = T_obj.getParentLink();
+				parentLink.addItem(link); 
+				var uiObj:UIComponent = new UIComponent(); 
+				uiObj.addChild(link);
+				topo_group.addElement(uiObj);
+				link_num++;				
+			}
+			
+			private function netwokrPanel_MouseUpHandler(event:MouseEvent):void
+			{
+				isMouseDown = false;
+			}
+			
+			//in the case of dragging component, redraw the line beteween components.
+			private function netwokrPanel_MouseMoveHandler(event:MouseEvent):void
+			{
+				if(isMouseDown) 
+				{	
+					//store location
+					var tempx:Number = currentTarget.x + event.stageX - currentX;
+					var tempy:Number = currentTarget.y + event.stageY - currentY;
+					currentX = event.stageX;
+					currentY = event.stageY;
+					//impl move
+					currentTarget.move(tempx, tempy); 
+					//redraw line - component itself
+					var parentLinks:ArrayCollection = currentTarget.getParentLink();
+					for(var j:int=0; j <parentLinks.length; j++) {
+						var parentlink:Link = parentLinks.getItemAt(j) as Link;
+						//parentlink.reset();
+						parentlink.redraw();						
+					}	
+					//redraw the line - others component
+					var childrenLinks:ArrayCollection = currentTarget.getChildrenLinks();
+					for(var i:int=0; i < childrenLinks.length; i++) {
+						var childLink:Link = childrenLinks.getItemAt(i) as Link;
+						//childLink.reset();
+						childLink.redraw();	
+					}	    
+				}
+			}
+			
+			private function networkPanel_dragEnterHandler(event:DragEvent):void 
+			{
+				var dropTarget:Panel=Panel(event.currentTarget);
+				DragManager.acceptDragDrop(dropTarget);            	
+			}
+			
+			
+			//impl container to receieve pictures
+			private function network_dragDropHandler(event:DragEvent):void
+			{	
+				if(drag_start_obj=="img/controller.jpg"){
+					item = new Controller();					
+					config(item,event.currentTarget.mouseX,
+						event.currentTarget.mouseY,"c"+C_obj.length+"~"+(2+id_num));
+					item.setCon_id(2+id_num++);
+					item.setCon_name("c"+C_obj.length);
+					C_obj.addItem(item);
+				}
+				
+				if(drag_start_obj=="img/switch.jpg"){
+					item= new Switch();				
+					config(item,event.currentTarget.mouseX,
+						event.currentTarget.mouseY,"s"+S_obj.length+"~"+(2+id_num));
+					item.setSwitch_id(2+id_num++);					
+					item.setSwitch_name("s"+S_obj.length);
+					S_obj.addItem(item);
+				}
+				
+				if(drag_start_obj=="img/host.jpg"){
+					item= new Host();
+					config(item,event.currentTarget.mouseX,
+						event.currentTarget.mouseY,"h"+H_obj.length+"~"+(2+id_num));				
+					item.setHost_ID(2+id_num++);
+					item.setMac_Add(createMAC.getMAC(H_obj.length));
+					item.setHost_IP("10.0.0."+H_obj.length);
+					item.setHost_Name("h"+H_obj.length);
+					H_obj.addItem(item);
+				}
+				
+				if(drag_start_obj=="img/ethernet.jpg"){
+					isDraw=true;
+					isMouseDown=false;
+					//cursorChange();
+				}
+				item.addEventListener(MouseEvent.MOUSE_DOWN, imageMouseDownHandler);
+				item.addEventListener(MouseEvent.MOUSE_UP, imageMouseUpHandler);
+				item.addEventListener(MouseEvent.MOUSE_OVER, imageMouseOverHandler);  
+				network_group.addElement(item);
+			}
+			
+			
+			private function imageMouseDownHandler(event:MouseEvent):void
+			{	
+				if(isDraw) {
+					fromObj = Item_image(event.currentTarget);
+				} else {
+					currentTarget = Item_image(event.currentTarget);
+					isMouseDown = true;
+					currentX = event.stageX;
+					currentY = event.stageY;
+				}
+			}
+			
+			private function imageMouseOverHandler(event:MouseEvent):void
+			{
+				if(isDraw) {
+					Item_image(event.currentTarget).setFocus();            		
+				}
+			}
+			
+			private function imageMouseUpHandler(event:MouseEvent):void
+			{
+				if(isDraw) {
+					toObj = Item_image((event.currentTarget));					
+					var link:Link = new Link(fromObj, toObj);
+					var childrenLinks:ArrayCollection = fromObj.getChildrenLinks();
+					childrenLinks.addItem(link);					
+					var parentLink:ArrayCollection = toObj.getParentLink();
+					parentLink.addItem(link); 
+					var uiObj:UIComponent = new UIComponent(); 
+					uiObj.addChild(link);
+					network_group.addElement(uiObj);
+					//Can not continuous draw lines, but can normally drag
+					isDraw=false;
+					CursorManager.removeAllCursors();
+					link_num++;
+				}
+			} 	
+			
+			protected function network_creationCompleteHandler1(event:FlexEvent):void
+			{
+				network.addEventListener(MouseEvent.MOUSE_UP, netwokrPanel_MouseUpHandler);
+				network.addEventListener(MouseEvent.MOUSE_MOVE, netwokrPanel_MouseMoveHandler);
+				var typicalmenu:MenuBar = new MenuBar();			
+				typicalmenu.top = 0;				
+				typicalmenu.labelField = "@label";				
+				typicalmenu.dataProvider = typicalTopo;
+				typicalmenu.addEventListener("itemClick",TGF);					
+				network.addElement(typicalmenu);
+			}
+			
+		]]>
+	</fx:Script>  
+	
+	<s:layout>
+		<s:ConstraintLayout>
+			<s:constraintRows>
+				<s:ConstraintRow id="row1" height="50"/>
+				<s:ConstraintRow id="row2" height="65%"/>
+				<s:ConstraintRow id="row3" height="35%"/>
+			</s:constraintRows>
+			
+			<s:constraintColumns>
+				<s:ConstraintColumn id="col1" width="255"/>
+				<s:ConstraintColumn id="col2" width="100%"/>
+			</s:constraintColumns>
+		</s:ConstraintLayout>	
+	</s:layout>
+	
+	
+	
+	<mx:MenuBar id="mymenu" labelField="@label" dataProvider="{menuBarCollection}" 
+				top="0" left="0" right="0" itemClick="menubar_itemClickHandler(event)"
+				chromeColor="0x014D67" fontWeight="bold"  showRoot="true"
+				/>
+	
+	<s:SkinnableContainer skinClass="skins.CoolSkin" left="0" top="20" right="0"
+						  creationComplete="buttonContainer_creationCompleteHandler(event)">
+		<s:layout>
+			<s:HorizontalLayout gap="0"/>
+		</s:layout>
+		<s:Button id="newbtn" icon="@Embed('assets/new.jpg')" width="40" height="29" toolTip="New"/>
+		<s:Button id="opebtn" icon="@Embed('assets/open.jpg')" width="40" height="29" toolTip="Open"/>
+		<s:Button id="savbtn" icon="@Embed('assets/save.jpg')" width="40" height="29" toolTip="Save"/>
+		<s:Button id="pribtn" icon="@Embed('assets/print.jpg')" width="40" height="29" toolTip="Print"/>
+		<s:Button id="undbtn" icon="@Embed('assets/undo.jpg')" width="40" height="29" toolTip="Undo"/>
+		<s:Button id="redbtn" icon="@Embed('assets/redo.jpg')" width="40" height="29" toolTip="Redo"/>
+		<s:Button id="zoomin" icon="@Embed('assets/zoomin.jpg')" width="40" height="29" toolTip="Zoom in"/>
+		<s:Button id="zoomout" icon="@Embed('assets/zoomout.jpg')" width="40" height="29" toolTip="Zoom out"/>
+		<s:Button id="delbtn" icon="@Embed('assets/delete.jpg')" width="40" height="29" toolTip="Delete"/>
+	</s:SkinnableContainer>
+	
+	<s:Panel title="Library" top="row2:0" left="2"  bottom="row2:2" 
+			 dropShadowVisible="false" width="250">
+		<s:layout>
+			<s:VerticalLayout clipAndEnableScrolling="true"/>
+		</s:layout>
+		<mx:Tree id="objectTree" dataProvider="{library}" labelField="@label" 
+				 width="100%" height="100%"
+				 dragEnabled="true" dragMoveEnabled="false" showRoot="true"
+				 creationComplete="tree_creationCompleteHandler(event)"/>
+	</s:Panel>
+	
+	<s:Panel id="preview" title="Preview" left="2" top="row3:0" bottom="row3:3"
+			 dropShadowVisible="false" width="250">
+		<s:layout>
+			<s:VerticalLayout clipAndEnableScrolling="true"/>
+		</s:layout>
+		<s:Scroller width="100%" height="100%">
+			<s:Group width="100%" height="100%">
+				<s:layout>
+					<s:BasicLayout/>
+				</s:layout>
+				<mx:Image id="previewImage" 
+						  horizontalCenter="0" verticalCenter="0"/>
+			</s:Group>
+		</s:Scroller>
+	</s:Panel>
+	
+	<!-- bottom="row3:-300" right="-1000" creationComplete="networkPanel_creationCompleteHandler(event)"-->
+	<s:TitleWindow left="col2:0" top="row2:0"  right="3" bottom="0" height="100%" creationPolicy="all">
+		<mx:TabNavigator height="100%" width="100%">
+			<s:NavigatorContent label="Topo" height="100%" width="100%">
+				<s:Panel id="Topo" width="100%" height="100%">					
+					<s:layout>
+						<s:BasicLayout clipAndEnableScrolling="true"/>
+					</s:layout>						
+					<s:Scroller width="100%" height="100%">
+						<s:Group id="topo_group" width="100%" height="100%">
+							<s:layout>
+								<s:BasicLayout/>
+							</s:layout>							
+						</s:Group>
+					</s:Scroller>
+				</s:Panel>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="CreateTopo" height="100%" width="100%">
+				<s:Panel id="network"  height="100%" width="100%" 
+						 dropShadowVisible="false"  
+						 dragEnter="networkPanel_dragEnterHandler(event)" 
+						 dragDrop="network_dragDropHandler(event)"
+						 creationComplete="network_creationCompleteHandler1(event)">
+					<s:layout>
+						<s:BasicLayout clipAndEnableScrolling="true"/>
+					</s:layout>
+					<s:Scroller width="100%" height="100%">
+						<s:Group id="network_group" width="100%" height="100%">
+							<s:layout>
+								<s:BasicLayout/>
+							</s:layout>									
+						</s:Group>
+					</s:Scroller>
+				</s:Panel>
+			</s:NavigatorContent>			
+		</mx:TabNavigator>
+	</s:TitleWindow>	
+</s:Application>

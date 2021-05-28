@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Port">
+
+	<typeAlias alias="Port" type="cn.dlut.entity.Port" />
+
+	<resultMap class="Port" id="Port">
+		<result property="id" column="id" />
+		<result property="switch_id" column="switch_id" />
+		<result property="port_no" column="port_no" />
+		<result property="mac_addr" column="mac_addr" />
+		<result property="port_name" column="port_name" />
+		<result property="config" column="config" />
+		<result property="state" column="state" />
+		<result property="curr" column="curr" />
+		<result property="advertised" column="advertised" />
+		<result property="supported" column="supported" />
+		<result property="peer" column="peer" />
+		<result property="curr_speed" column="curr_speed" />
+		<result property="max_speed" column="max_speed" />
+		<result property="ctime" column="ctime" />
+	</resultMap>
+
+	<select id="getAll" resultClass="Port">
+		select * from s_port_info
+	</select>
+
+	<!-- select by id -->
+	<select id="getById" resultClass="Port" parameterClass="Integer">
+		select *
+		from s_port_info where id=#id#
+	</select>
+
+	<!-- select port_id by switchid and portnumber -->
+	<select id="getId" resultClass="Integer" parameterClass="java.util.Map">
+		select
+		id from s_port_info where switch_id=#switch_id# and port_no=#port_no#
+	</select>
+
+	<!-- select port from switchid -->
+	<select id="getBySwitchId" resultClass="Port" parameterClass="Integer">
+		select * from s_port_info where switch_id=#switch_id#
+	</select>
+
+
+	<!-- delete by id -->
+	<delete id="delById" parameterClass="Integer">
+		delete from s_port_info
+		where
+		id=#id#
+	</delete>
+
+	<!-- delete by ctrl_ID -->
+	<delete id="delByCtrlId" parameterClass="Integer">
+		delete from s_port_info
+		where
+		switch_id in (select id from s_switch_info where
+		s_switch_info.ctrl_id=#ctrl_id#)
+	</delete>
+	
+	<!-- delete all entries ,
+	     2015-12-08 modified from delete to truncate-->
+	<delete id="delAll">
+		<!-- delete from s_port_info -->
+	</delete>
+
+	<!-- insert, modified in 2015-12-08 -->
+	<insert id="insert" parameterClass="Port"><!--
+		insert into
+		s_port_info(switch_id,port_no,mac_addr,port_name,config,state,curr,advertised,supported,peer,curr_speed,max_speed,ctime)
+		select
+		#switch_id#,#port_no#,#mac_addr#,#port_name#,#config#,#state#,#curr#,#advertised#,#supported#,#peer#,#curr_speed#,#max_speed#,#ctime#
+		from dual where not exists(select * from s_port_info where
+		switch_id=#switch_id# and port_no=#port_no#)
+	-->
+		insert into
+		s_port_info(switch_id,port_no,mac_addr,port_name,config,state,curr,advertised,supported,peer,curr_speed,
+		max_speed,ctime)
+		values(#switch_id#,#port_no#,#mac_addr#,#port_name#,#config#,#state#,#curr#,#advertised#,#supported#,
+		#peer#,#curr_speed#,#max_speed#,#ctime#)
+	</insert>
+
+</sqlMap>

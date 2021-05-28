@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<utils:MyTitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:utils="utils.*"
+					 xmlns:cdg="view.*"
+					 layout="vertical"
+					 initialize="init1()" width="850" height="600" 
+					 close="this.parent.removeChild(this)" showCloseButton="true"
+					 verticalScrollPolicy="auto" horizontalScrollPolicy="auto" dropShadowVisible="true">
+	
+<!--
+	<utils:states>
+		<s:State name="image"/>
+		<s:State name="document"/>
+	</utils:states>
+-->
+
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.KeepOnly;
+			
+			[Bindable]
+			private var filter_attr:ArrayCollection = new ArrayCollection(["All", "SwitchID","DatapathID"]);			
+			[Bindable]
+			private var filter_valuelist:ArrayCollection = new ArrayCollection();
+			[Bindable]
+			private var switchlist_ac:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var switchlist_this:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			
+			private var filterlist:ArrayCollection=new ArrayCollection();
+			private var controllerID:int;
+			
+			
+			protected function init1():void{
+				controllerID=FlexGlobals.topLevelApplication.activeItem.getCon_id();
+				switchlist_this=FlexGlobals.topLevelApplication.ac_switch;
+				this.title="controller"+controllerID+"-switch list";
+				this.addEventListener(Event.RESIZE, titleWindowResized);
+				getdata();
+				getdata_all();
+				switchlistDG.InitData(filterlist);
+			}
+			
+			
+			//call once when popping up window, then call at the moment of zooming
+			protected function titleWindowResized(event:Event):void{
+				
+				this.addEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+			//finished when zooming once, call at the moment of mouse up
+			protected function resizeCompleted(event:MouseEvent):void{
+				
+				this.removeEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			public function getdata():void{
+				var ctrlid:int;
+				if(switchlist_ac.length!=0)
+					switchlist_ac.removeAll();
+				for(var s_num:int = 0;s_num<switchlist_this.length;s_num++){
+					ctrlid=switchlist_this[s_num].ctrl_id as int;
+					if(ctrlid==controllerID)
+						switchlist_ac.addItem(switchlist_this[s_num]);
+				}
+			}
+			
+			public function getdata_all():void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var s_num:int = 0;s_num<switchlist_ac.length;s_num++){
+					filterlist.addItem(switchlist_ac[s_num]);
+				}
+			}
+			
+			public function getdata_id(id:int):void{
+				var switchid:int;
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var s_num:int = 0;s_num<switchlist_ac.length;s_num++){
+					switchid=switchlist_ac[s_num].id;
+					if(switchid==id)
+						filterlist.addItem(switchlist_ac[s_num]);
+				}
+			}
+			
+			public function getdata_dpid(dpid:String):void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var s_num:int = 0;s_num<switchlist_ac.length;s_num++){
+					var dp_id:String=switchlist_ac[s_num].dp_id;
+					if(dp_id==dpid)
+						filterlist.addItem(switchlist_ac[s_num]);
+				}
+			}
+			
+			private function filterHandler(filter_attri:String):void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				switch(filter_attri){
+					case "All":
+						getdata_all();
+						break;
+					case "SwitchID":
+						getdata_id(filter_value.selectedItem as int);
+						break;
+					case "DatapathID":
+						getdata_dpid(filter_value.selectedItem as String);
+						break;
+				}
+				switchlistDG.InitData(filterlist);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			private function filter_attri_valueCommitHandler():void{
+				var filter_attri:String=filter_attri.selectedItem;
+				var s_num:int;
+				if(filter_valuelist.length!=0)
+					filter_valuelist.removeAll();
+				switch(filter_attri){
+					case "All":
+						filter_value.dataProvider=filter_valuelist;
+						break;
+					case "SwitchID":
+						for(s_num = 0;s_num<switchlist_ac.length;s_num++){
+							filter_valuelist.addItem(switchlist_ac[s_num].id);
+						}
+						filter_value.dataProvider=KeepOnly(filter_valuelist) as ArrayCollection;
+						break;
+					case "DatapathID":
+						for(s_num = 0;s_num<switchlist_ac.length;s_num++){
+							filter_valuelist.addItem(switchlist_ac[s_num].dp_id);
+						}
+						filter_value.dataProvider=KeepOnly(filter_valuelist) as ArrayCollection;
+						break;
+				}				
+			}
+
+		]]>
+	</fx:Script>
+
+	
+	<s:Spacer height="5"/>
+	
+	<s:Group>
+		<s:layout>
+			<s:HorizontalLayout/>
+		</s:layout>
+		
+	<s:DropDownList id="filter_attri" dataProvider="{filter_attr}" 
+					selectedItem="{filter_attr.getItemAt(0)}" valueCommit="filter_attri_valueCommitHandler()"/>
+	<s:DropDownList id="filter_value" width="200"/>
+	<s:Button id="filter" label="filter" fontWeight="bold" 
+			  click="filterHandler(filter_attri.selectedItem.toString())"/>
+	<s:Spacer width="20"/>
+	</s:Group>
+
+	<!--  pageCount: entry number per page,default 20-->
+	<cdg:CustomDataGrid id="switchlistDG" width="1700">
+		<cdg:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="id" headerText="SwitchID"></s:GridColumn>   
+    <!--    	<s:GridColumn dataField="ctrl_id" headerText="ControllerID"></s:GridColumn>   -->
+				<s:GridColumn dataField="dp_id" headerText="DatapathID"></s:GridColumn>
+				<s:GridColumn dataField="n_tables" headerText="TableNumber"></s:GridColumn> 
+				<s:GridColumn dataField="dp_desc" headerText="DatapathDescription"></s:GridColumn> 
+				<s:GridColumn dataField="sw_desc" headerText="SwitchDescription"></s:GridColumn>
+				<s:GridColumn dataField="hw_desc" headerText="HardwareDescription"></s:GridColumn>
+				<s:GridColumn dataField="serial_num" headerText="SerialNumber"></s:GridColumn>
+				<s:GridColumn dataField="mfr_desc" headerText="MfrDescription"></s:GridColumn>
+				<s:GridColumn dataField="ctime" headerText="CreatedTime"></s:GridColumn>
+			</s:ArrayList>
+		</cdg:columns>
+	</cdg:CustomDataGrid>
+
+	
+</utils:MyTitleWindow>

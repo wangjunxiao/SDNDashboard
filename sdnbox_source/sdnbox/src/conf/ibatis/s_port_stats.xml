@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="PortStats">
+
+	<typeAlias alias="PortStats" type="cn.dlut.entity.PortStats" />
+
+	<resultMap class="PortStats" id="PortStats">
+		<result property="id" column="id" />
+		<result property="dp_id" column="dp_id" />
+		<result property="port_no" column="port_no" />
+		<result property="rcv_packets" column="rcv_packets" />
+		<result property="trsm_packets" column="trsm_packets" />
+		<result property="rcv_bytes" column="rcv_bytes" />
+		<result property="trsm_bytes" column="trsm_bytes" />
+		<result property="rcv_drop" column="rcv_drop" />
+		<result property="trsm_drop" column="trsm_drop" />
+		<result property="rcv_err" column="rcv_err" />
+		<result property="trsm_err" column="trsm_err" />
+		<result property="rcv_frm_err" column="rcv_frm_err" />
+		<result property="rcv_over_err" column="rcv_over_err" />
+		<result property="rcv_CRC_err" column="rcv_CRC_err" />
+		<result property="collisions" column="collisions" />
+		<result property="duration_sec" column="duration_sec" />
+		<result property="duration_nsec" column="duration_nsec" />
+		<result property="update_time" column="update_time" />
+	</resultMap>
+
+	<select id="getAll" resultClass="PortStats">
+		select * from s_port_stats
+	</select>
+
+	<!-- select by ID -->
+	<select id="getById" resultClass="PortStats" parameterClass="Integer">
+		select * from s_port_stats where id=#id#
+	</select>
+	
+	<!-- select port id by switch id and port number -->
+	<select id="getId" resultClass="Integer" parameterClass="java.util.Map">
+		select id from s_port_stats where switch_id=#switch_id# and port_no=#port_no#
+	</select>
+	
+	<!-- select port by dp_id -->
+	<select id="getBySwitchId" resultClass="HashMap" parameterClass="java.util.Map">
+		select port_no,rcv_bytes,trsm_bytes,update_time from s_port_stats 
+		where dp_id=#dp_id# AND
+		update_time between DATE_SUB(NOW(),INTERVAL #interval# MINUTE) and NOW()
+	</select>
+	
+	
+	<!-- delete by ID -->
+	<delete id="delById" parameterClass="Integer">
+		delete from s_port_Stats
+		where
+		id=#id# 
+	</delete>
+	
+	<!-- delete by ctrl_ID -->
+	<delete id="delByCtrlId" parameterClass="Integer">
+		delete from s_port_stats
+		where
+		dp_id in (select dp_id from s_switch_info where s_switch_info.ctrl_id=#ctrl_id#) 
+	</delete>
+	<!-- delete all entries ,
+	     2015-12-08 modified from delete to truncate-->
+	<delete id="delAll">
+		<!--delete from s_port_stats-->
+		truncate s_port_stats
+	</delete>
+	
+	<!-- insert  -->
+	<insert id="insert" parameterClass="PortStats">
+		insert into
+		s_port_stats(dp_id,port_no,rcv_packets,trsm_packets,rcv_bytes,trsm_bytes,
+		rcv_drop,trsm_drop,rcv_err,trsm_err,rcv_frm_err,rcv_over_err,rcv_CRC_err,
+		collisions,duration_sec,duration_nsec,update_time) 
+		select 
+		#dp_id#,#port_no#,#rcv_packets#,#trsm_packets#,#rcv_bytes#,#trsm_bytes#,
+		#rcv_drop#,#trsm_drop#,#rcv_err#,#trsm_err#,#rcv_frm_err#,#rcv_over_err#,#rcv_CRC_err#,
+		#collisions#,#duration_sec#,#duration_nsec#,#update_time# 
+		from dual 
+		where exists(select * from s_port_info,s_switch_info 
+		where s_switch_info.dp_id=#dp_id# and s_port_info.port_no=#port_no#)
+	</insert>
+
+</sqlMap>

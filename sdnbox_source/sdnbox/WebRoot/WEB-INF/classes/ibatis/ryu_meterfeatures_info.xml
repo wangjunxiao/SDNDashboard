@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="RyuMeterFeatures">
+
+
+	<typeAlias alias="RyuMeterFeatures" type="cn.dlut.entity.RyuMeterFeatures" />
+	<resultMap class="RyuMeterFeatures" id="RyuMeterFeatures">
+
+		<result property="id" column="id" />
+		<result property="switch_id" column="switch_id" />
+		<result property="ctrl_id" column="ctrl_id" />
+		<result property="max_meter" column="max_meter" />
+		<result property="band_types" column="band_types" />
+		<result property="capabilities" column="capabilities" />
+		<result property="max_bands" column="max_bands" />
+		<result property="max_color" column="max_color" />
+		<result property="ctime" column="ctime" />
+
+	</resultMap>
+
+	<select id="getAll" resultClass="RyuMeterFeatures">
+		select * from
+		ryu_meterfeatures_info
+	</select>
+
+	<select id="getById" resultClass="RyuMeterFeatures"
+		parameterClass="Integer">
+		select * from ryu_meterfeatures_info where id=#id#
+	</select>
+
+	<insert id="insert" parameterClass="RyuMeterFeatures">
+		insert into
+		ryu_meterfeatures_info(switch_id,ctrl_id,max_meter,band_types,capabilities,max_bands,max_color,ctime)
+		select
+		#switch_id#,#ctrl_id#,#max_meter#,#band_types#,#capabilities#,#max_bands#,#max_color#,#ctime#
+		from dual where not exists(select
+		switch_id,ctrl_id,max_meter,band_types,capabilities,max_bands,max_color
+		from ryu_meterfeatures_info where switch_id=#switch_id# and ctrl_id=#ctrl_id#
+		and max_meter=#max_meter# and band_types=#band_types# and
+		capabilities=#capabilities# and max_bands=#max_bands# and
+		max_color=#max_color#)
+	</insert>
+
+	<delete id="delById" parameterClass="Integer">
+		delete from
+		ryu_meterfeatures_info where id=#id#
+	</delete>
+
+	<delete id="delAll">
+		delete from ryu_meterfeatures_info
+	</delete>
+
+	<delete id="delByCtrl_id" parameterClass="Integer">
+		delete from
+		ryu_meterfeatures_info where ctrl_id=#ctrl_id#
+	</delete>
+
+
+</sqlMap>

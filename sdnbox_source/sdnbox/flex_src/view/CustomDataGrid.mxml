@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<fx:Script>
+		<![CDATA[
+		import mx.collections.ArrayCollection;
+		import mx.collections.ArrayList;
+		import mx.core.FlexGlobals;
+		// Entries that current need to be displayed
+		[Bindable]
+		private var mypagedata:ArrayCollection = new ArrayCollection();
+		[Bindable]
+		public var columns:ArrayList; // data set
+		public var dataProvider:ArrayCollection=new ArrayCollection; // total data
+		[Bindable]	
+		public var pageCount:int = 20;// entry number per page, default 20
+		public var curPage:int; // current page
+		public var totalPage:int; // total page
+		public var totalCount:int; // total entry
+		public function InitData(value:ArrayCollection):void
+		{
+			
+			// put all data to dataProvider
+			dataProvider = value;
+			// Remove all data entries in the current page
+			mypagedata.removeAll();
+			if(null != dataProvider && dataProvider.length > 0)
+			{
+				totalCount = dataProvider.length;
+				totalPage = (totalCount + pageCount -1)/pageCount;
+				setPager(0);
+				inputpage.minimum=1;
+				inputpage.maximum= totalPage;
+			}else{
+				totalCount = 0;
+				totalPage = 0;
+				curPage = 0;
+				inputpage.minimum=0;
+				inputpage.maximum= 0;
+				pagedetail.text = "page 0 / total 0 page, total 0 records";
+			}
+			
+		}
+		public function setPager(value:int):void
+		{
+			if(value <0 || (value+1)>totalPage){
+				return;
+			}
+			curPage = value;
+			// Count jumps to the first record in current page is which record among all records
+			var curNum : int = value*pageCount;
+			// Clear the current display of the data record
+			mypagedata.removeAll();
+			for(var i:int = 0; curNum<dataProvider.length&&i<pageCount; i++,curNum++){
+				mypagedata.addItem(dataProvider.getItemAt(curNum));
+			}
+			var temp:int=curPage+1;
+			pagedetail.text = "page "+temp+" / total "+totalPage+" page, total "+totalCount+" records";
+			cudg.dataProvider = mypagedata;
+			
+		}
+		]]>
+	</fx:Script>
+	
+	<s:HGroup verticalAlign="middle" horizontalAlign="center">
+		<mx:LinkButton label="first page" click="setPager(0);" />
+		<mx:LinkButton label="previous page" click="setPager(curPage - 1);" />
+		<mx:LinkButton label="next page" click="setPager(curPage + 1);" />
+		<mx:LinkButton label="last page" click="setPager(totalPage - 1);" />
+		<s:Spacer width="10"/>
+		<s:Label text="page 0 / total 0 page" id="pagedetail" />
+		<s:Spacer width="20"/>
+		<s:NumericStepper id="inputpage" stepSize="1" minimum="0" maximum="0" />
+		<mx:LinkButton label="jump" click="setPager(inputpage.value - 1);" />
+	</s:HGroup>
+	
+	<s:DataGrid id="cudg" columns="{columns}" width="100%" requestedRowCount="{pageCount}"/>
+</s:VGroup>

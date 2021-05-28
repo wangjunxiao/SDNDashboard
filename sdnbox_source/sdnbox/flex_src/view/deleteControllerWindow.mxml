@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"    
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="462" height="434"
+			   close="this.parent.removeChild(this)"
+			   backgroundColor="#FFFFFF" dropShadowVisible="true" borderVisible="true" borderColor="#CEBCBC" contentBackgroundColor="#FAFAFA" fontFamily="Times New Roman">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Declarations>		
+		<mx:RemoteObject id="ConfigControllerService" destination="ConfigControllerService" >  
+			<mx:method name="removeController" result="removeResult(event)"/>
+		</mx:RemoteObject>	
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			private var controllertype:String;
+			private var controllerurl:String;
+			[Bindable]
+			private var proto:ArrayCollection = new ArrayCollection([,"Floodlight","Ryu"]);
+			
+			protected function close(event:MouseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Script>
+		<![CDATA[				
+			
+			protected function handleRemoveController(event:MouseEvent):void{
+				getRuleData();
+				//Alert.show(""+controllertype);
+				//call backend defined ConfigControllerService.addController to add extra controller
+				ConfigControllerService.removeController(controllertype,controllerurl);
+			}
+			
+			private function removeResult(event:ResultEvent):void{
+				Alert.show(""+ConfigControllerService.removeController.lastResult,"prompt");
+				return;
+			} 
+			
+			protected function getRuleData():void{
+				if(type.selectedItem=="Floodlight")
+				{
+					controllertype="Floodlight"
+				}
+				else if(type.selectedItem=="Ryu")
+				{
+					controllertype = "Ryu";
+				}
+				
+				if(url)
+				{
+					controllerurl=StringUtil.trim(url.text);
+				}
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:NavigatorContent label="Remove_Controller" width="100%" height="100%" backgroundColor="#FFFFFF" creationPolicy="all">
+		<mx:Form  verticalCenter="0" horizontalCenter="0" verticalGap="20" height="346" width="372">
+			<mx:FormItem label="Type" paddingLeft="8" fontSize="16">
+				<s:DropDownList fontSize="12" dataProvider="{proto}" selectedIndex="0"  width="169"  x="12" y="225"  id="type" />
+			</mx:FormItem>
+			<mx:FormItem label="URL" paddingLeft="8" fontSize="16" creationPolicy="auto">
+				<s:TextInput id="url" />
+			</mx:FormItem>
+		</mx:Form>
+		
+		<s:Button y="290" horizontalCenter="-84" label=" Remove "
+				  width="113" height="29" chromeColor="#0155BD" color="#FFFFFF" 
+				  fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+				  textDecoration="none" lineThrough="false" click="handleRemoveController(event)"/>
+		<s:Button y="290" x="260" label="Close"  width="113" height="29" chromeColor="#0155BD"
+				  color="#FFFFFF" fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+				  textDecoration="none" lineThrough="false" click="close(event)" />	
+	</s:NavigatorContent>
+</s:TitleWindow>

@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"    
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="462" height="434" initialize="AddEntryInit()"
+			   close="PopUpManager.removePopUp(this)" backgroundColor="#FFFFFF" dropShadowVisible="true" borderVisible="true" 
+			   borderColor="#CEBCBC" contentBackgroundColor="#FAFAFA" fontFamily="Times New Roman">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Declarations>		
+	   <mx:RemoteObject id="FlowEntryService" destination="FlowEntryService" >  
+		   <mx:method name="createFlowEntry" result="createResult(event)"/>
+		   <mx:method name="deleteFlowEntry" result="deleteResult(event)"/>
+	   </mx:RemoteObject>	
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import Components.FlowEntry;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			import spark.components.mediaClasses.VolumeBar;
+			
+			[Bindable]
+			private var dp_id:String = FlexGlobals.topLevelApplication.activeItem.getDp_id();
+			[Bindable]
+			private var port_data:ArrayCollection = new ArrayCollection();	
+			[Bindable]
+			private var action_data:ArrayCollection = new ArrayCollection(["Please Select an Action","Drop","Loopback",
+										"Flood","Controller","Add Output Ports","Set VLAN ID","Set VLAN Priority",
+										"Strip VLAN Header","Modify Datalayer Source Address","Modify Datalayer Destination Address",
+										"Modify Network Source Address","Modify Network Destination Address","Modify ToS Bits",
+										"Modify Transport Source Port", "Modify Transport Destination Port"]);	
+			[Bindable]
+			private var  EthernetType:ArrayCollection = new ArrayCollection(["Please Select an Ethernet Type","IPv4","ARP","LLDP","VLAN","MPLS_unicast"," MPLS_multicast"]);
+			[Bindable]
+			private var NetworkProtocol:ArrayCollection = new ArrayCollection(["Please Select an Network Protocol","ICMP","IGMP","TCP","EGP","IGP","UDP","IPv6","OSPF"])
+
+			protected function AddEntryInit():void{
+				//get current selected switch id
+				var switchID:int = FlexGlobals.topLevelApplication.activeItem.getSwitch_id();
+				//get port info from db
+				var tempData:ArrayCollection = FlexGlobals.topLevelApplication.ac_port;
+				//get current selected all switch ports by switch id
+				port_data.addItem('Please Select a port');
+				for(var p_num:int = 0;p_num<tempData.length;p_num++){
+					var switchid:int =tempData[p_num].switch_id as int;
+					if(switchid==switchID){
+						port_data.addItem(tempData[p_num].port_no);						
+					}
+				}
+			}
+			
+			//pop up specified input field according to different Action
+			protected function formitem1_clickHandler(event:Event):void
+			{
+				if(action.selectedItem=="Add Output Ports"){
+					if(action_args_name.visible==true || tip.visible==true || action_args==true){
+						action_args_name.visible = false;
+						tip.visible = false;
+						action_args.visible = false;
+					}
+					out_port.label = "Select Out Port";
+					out_port.visible = true;					
+				}
+				else if(action.selectedItem=="Set VLAN ID"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}					
+					action_args_name.text = "Set VLAN ID";					
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text = "Range:0-4095";
+				}
+				else if(action.selectedItem=="Set VLAN Priority"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}
+					action_args_name.text = "Set VLAN Priority";					
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text =  "Range:0-7";					
+				}
+				else if(action.selectedItem=="Modify Datalayer Source Address"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}
+					action_args_name.text = "Set Source MAC Address";				
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text =  "Range:00:11:22:aa:bb:cc";					
+				}
+				else if(action.selectedItem=="Modify Datalayer Destination Address"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}
+					action_args_name.text = "Set Destination MAC Address";				
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text =  "Range:00:11:22:aa:bb:cc";					
+				}
+				else if(action.selectedItem=="Modify Network Source Address"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}
+					action_args_name.text = "Set IP Source Address";			
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text =  "Example:127.0.0.1";				
+				}
+				else if(action.selectedItem=="Modify Network Destination Address"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}
+					action_args_name.text = "Set IP Destinaton Address";			
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text =  "Example:127.0.0.1";					
+				}
+				else if(action.selectedItem=="Modify ToS Bits"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}
+					action_args_name.text = "Set IPv4 ToS";		
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text = "Range:0-63";				
+				}
+				else if(action.selectedItem=="Modify Transport Source Port"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}
+					action_args_name.text = "Set Transport Source Port";
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text = "Range:0-65535";					
+				}
+				else if(action.selectedItem=="Modify Transport Destination Port"){
+					if(out_port.visible==true){
+						out_port.visible = false;
+					}
+					action_args_name.text = "Set Transport Destination Port";
+					action_args_name.visible = true;					
+					action_args.visible = true;
+					tip.visible = true;
+					tip.text = "Range:0-65535";						
+				}
+				else{
+					action_args_name.visible = false;
+					tip.visible = false;
+					action_args.visible = false;
+					out_port.visible = false;
+				}
+			} 
+
+			//close button impl
+			protected function close(event:MouseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			//Action
+			public function getActionData(flowEntry:FlowEntry):Boolean{
+				if(action.selectedIndex==0){
+					Alert.show("Please Select an Action!");
+					return false;
+				}
+				
+				if(action.selectedIndex==1){
+					flowEntry.action = "drop";
+					return true;
+				}
+				if(action.selectedIndex==2){
+					flowEntry.action = "loopback";
+					return true;
+				}
+				if(action.selectedIndex==3){
+					flowEntry.action = "flood";
+					return true;
+				}
+				if(action.selectedIndex==4){
+					flowEntry.action = "controller";
+					return true;
+				}
+				
+				if(action.selectedIndex==5){
+					if( outPort.selectedIndex==0){
+						Alert.show("Please Select a Port!");
+						return false;
+					}
+					else{
+						flowEntry.action = "output";
+						flowEntry.output_port = outPort.selectedItem;
+						return true;
+					}
+				}
+				if(action.selectedIndex==6){					
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the VLAN ID!");
+						return false;
+					}else{
+						flowEntry.action = "vlan_id";
+						flowEntry.new_vlan_id = action_args.text;
+						return true;
+					}
+				}
+				if(action.selectedIndex==7){
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the VLAN Priority!");
+						return false;
+					}else{
+						flowEntry.action = "vlan_priority";
+						flowEntry.new_vlan_priority = action_args.text;
+						return true;
+					}
+				}
+				if(action.selectedIndex==8){
+					flowEntry.action = "vlan_header";
+					return true;
+				}
+				if(action.selectedIndex==9){
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the Source MAC  Address!");
+						return false;
+					}else{
+						flowEntry.action = "dl_src";
+						flowEntry.new_dl_src = action_args.text;
+						return true;
+					}
+				}
+				if(action.selectedIndex==10){
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the Destination MAC  Address!");
+						return false;
+					}else{
+						flowEntry.action = "dl_dst";
+						flowEntry.new_dl_dst = action_args.text;
+						return true;
+					}
+				}
+				if(action.selectedIndex==11){
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the IP Source Address!");
+						return false;
+					}else{
+						flowEntry.action = "nw_src";
+						flowEntry.new_nw_src = action_args.text;
+						return true;
+					}
+				}
+				if(action.selectedIndex==12){
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the IP Destination Address!");
+						return false;
+					}else{
+						flowEntry.action = "nw_dst";
+						flowEntry.new_nw_dst = action_args.text;
+						return true;
+					}
+				}
+				if(action.selectedIndex==13){
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the IPv4 ToS!");
+						return false;
+					}else{
+						flowEntry.action = "nw_tos";
+						flowEntry.new_nw_tos = action_args.text;
+						return true;
+					}
+				}
+				if(action.selectedIndex==14){
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the Transport Source Port!");
+						return false;
+					}else{
+						flowEntry.action = "tp_src";
+						flowEntry.new_tp_src = action_args.text;
+						return true;
+					}
+				}
+				if(action.selectedIndex==15){
+					if(StringUtil.trim(action_args.text)=="" || action_args.text==null){
+						Alert.show("Please Input the Transport Destination Port!");
+						return false;
+					}else{
+						flowEntry.action = "tp_dst";
+						flowEntry.new_tp_dst = action_args.text;
+						return true;
+					}
+				}
+				return true;
+			}
+			//Layer1
+			protected function getLayer1Data(fe1:FlowEntry):void{
+				fe1.dpid = StringUtil.trim(dpid.text);
+				fe1.name = StringUtil.trim(flowname.text);
+				if(in_port.selectedIndex==0){
+					fe1.in_port = "";
+				}else
+				fe1.in_port = in_port.selectedItem;
+				fe1.priority = priority.text;
+				fe1.hard_timeout = hard_timeout.text;
+				fe1.idle_timeout = idle_timeout.text;
+				fe1.cookie = cookie.text;
+			}
+			//Layer2
+			protected function getLayer2Data(fe2:FlowEntry):void{
+				if(dl_type.selectedIndex==0)
+					fe2.dl_type = "";
+				else
+					fe2.dl_type = dl_type.selectedItem;
+				if(dl_vlan)
+				fe2.dl_vlan = StringUtil.trim(dl_vlan.text);
+				if(dl_vlan_priority)
+				fe2.dl_vlan_priority = StringUtil.trim(dl_vlan_priority.text);
+				if(dl_src)
+				fe2.dl_src = StringUtil.trim(dl_src.text);
+				if(dl_dst)
+				fe2.dl_dst = StringUtil.trim(dl_dst.text);
+			}
+			//Layer3
+			protected function getLayer3Data(fe3:FlowEntry):void{
+				if(nw_dst)
+				fe3.nw_dst = StringUtil.trim(nw_dst.text);
+				if(nw_dst_masklen)
+				fe3.nw_dst_masklen = StringUtil.trim(nw_dst_masklen.text);
+				if(nw_src)
+				fe3.nw_src = StringUtil.trim(nw_src.text);
+				if(nw_src_masklen)
+				fe3.nw_src_masklen = StringUtil.trim(nw_src_masklen.text);
+				if(nw_tos)
+				fe3.nw_tos = StringUtil.trim(nw_tos.text);
+				if(nw_proto.selectedIndex==0)
+					fe3.nw_proto = "";
+				else
+					fe3.nw_proto = nw_proto.selectedItem;
+			}
+			//Layer4
+			protected function getLayer4Data(fe4:FlowEntry):void{
+				if(tp_dst)
+				fe4.tp_dst = StringUtil.trim(tp_dst.text);
+				if(tp_src)
+				fe4.tp_src = StringUtil.trim(tp_src.text);
+			}
+			
+			protected function Add(event:MouseEvent):void{
+				var controllerId:int = FlexGlobals.topLevelApplication.activeItem.getCrl_id();
+				var flowEntry:FlowEntry = new FlowEntry();
+				var type:int;
+				if(!getActionData(flowEntry)) return;
+				getLayer1Data(flowEntry);
+				getLayer2Data(flowEntry);
+				getLayer3Data(flowEntry);
+				getLayer4Data(flowEntry);
+				if(dpid.text.length==23){
+					type = 1; //Floodlight
+				}else{
+					type = 0; //Ryu (no support)
+				}
+				/**
+				 * add flow entry
+				 * @param flowEntry FlowEntry Object
+				 * @param controllerType 0->Ryu，1->Floodlight
+				 */
+				FlowEntryService.createFlowEntry(flowEntry,type,controllerId);
+			}
+			
+			private function createResult(event:ResultEvent):void{
+				Alert.show(""+FlowEntryService.createFlowEntry.lastResult,"prompt");
+				return;
+			}
+			
+			/**
+			 * delete specified flow entry by its name
+			 * @param flowName the name of deleted flow entry
+			 * @param type controller type
+			 */
+			private function deleteFlowEntry(event:MouseEvent):void{
+				var controllerId:int = FlexGlobals.topLevelApplication.activeItem.getCrl_id();
+				var flowName:String = flowEntryName.text;
+				var type:int;
+				if(dpid.text.length==23){
+					type = 1; //Floodlight
+				}else{
+					type = 0; //Ryu (no support)
+				}
+				FlowEntryService.deleteFlowEntry(flowName,type,controllerId);
+			}
+			
+			private function deleteResult(event:ResultEvent):void{
+				Alert.show(""+FlowEntryService.deleteFlowEntry.lastResult,"prompt");
+				return;
+			}
+
+		]]>
+	</fx:Script>
+	<mx:TabNavigator x="0" y="0" width="461" height="400" backgroundColor="#FFFFFF" creationPolicy="all">
+		<s:NavigatorContent label="Layer 1" width="100%" height="100%" backgroundColor="#FFFFFF" creationPolicy="all">
+			<mx:Form  verticalCenter="0" horizontalCenter="-14" verticalGap="20" height="346" width="372">
+				<mx:FormItem label="Name" paddingLeft="8" fontSize="16">
+					<s:TextInput id="flowname"/>
+				</mx:FormItem>
+				<mx:FormItem label="Dpid" paddingLeft="8" fontSize="16" creationPolicy="auto">
+					<s:TextInput id="dpid" text="{dp_id}" editable="false"/>
+				</mx:FormItem>
+				<mx:FormItem label="In_port" paddingLeft="8" fontSize="16" creationPolicy="auto">
+					<s:DropDownList fontSize="12" dataProvider="{port_data}" selectedIndex="0"  width="169"  x="12" y="225"  id="in_port" />
+				</mx:FormItem>
+				<mx:FormItem label="Priority" paddingLeft="8" fontSize="16">
+					<s:TextInput id="priority"/>
+				</mx:FormItem>
+				<mx:FormItem label="Hard_timeout" paddingLeft="8" fontSize="16">
+					<s:TextInput id="hard_timeout"/>
+				</mx:FormItem>
+				<mx:FormItem label="Idle_timeout" paddingLeft="8" fontSize="16">
+					<s:TextInput id="idle_timeout"/>
+				</mx:FormItem>
+				<mx:FormItem label="Cookie" paddingLeft="8" fontSize="16">
+					<s:TextInput id="cookie"/>
+				</mx:FormItem>
+			</mx:Form>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Layer 2" width="100%" height="100%" creationPolicy="all">
+			<mx:Form x="10" y="38" verticalGap="20" height="255" width="439">	
+				<mx:FormItem label="Ethernet Type" paddingLeft="8" fontSize="16" creationPolicy="auto">
+					<s:DropDownList fontSize="12" dataProvider="{EthernetType}" selectedIndex="0"  width="169"  x="12" y="225"  id="dl_type" />
+				</mx:FormItem>
+				<mx:FormItem label="VLAN Identification Number" paddingLeft="8" fontSize="16">
+					<s:TextInput id="dl_vlan"/>
+				</mx:FormItem>
+				<mx:FormItem label="VLAN Priority" paddingLeft="8" fontSize="16">
+					<s:TextInput id="dl_vlan_priority"/>
+				</mx:FormItem>
+				<mx:FormItem label="Source MAC Address" paddingLeft="8" fontSize="16">
+					<s:TextInput id="dl_src"/>
+				</mx:FormItem>
+				<mx:FormItem label="Destination MAC Address" paddingLeft="8" fontSize="16">
+					<s:TextInput id="dl_dst"/>
+				</mx:FormItem>			
+			</mx:Form>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Layer 3" width="100%" height="100%" creationPolicy="all">
+			<mx:Form x="0" y="38" verticalGap="20" height="290" width="100%">	
+				<mx:FormItem label="Source IP Address" paddingLeft="8" fontSize="16">
+					<s:TextInput id="nw_src"/>
+				</mx:FormItem>
+				<mx:FormItem label="Source IP Address Mask Length" paddingLeft="8" fontSize="16">
+					<s:TextInput id="nw_src_masklen"/>
+				</mx:FormItem>
+				<mx:FormItem label="Destination IP Address " paddingLeft="8" fontSize="16">
+					<s:TextInput id="nw_dst"/>
+				</mx:FormItem>
+				<mx:FormItem label="Destination IP Address Mask Length " paddingLeft="8" fontSize="16">
+					<s:TextInput id="nw_dst_masklen"/>
+				</mx:FormItem>
+				<mx:FormItem label="ToS Bits" paddingLeft="8" fontSize="16">
+					<s:TextInput id="nw_tos"/>
+				</mx:FormItem>
+				<mx:FormItem label="Network Protocol" paddingLeft="8" fontSize="16" creationPolicy="auto">
+					<s:DropDownList fontSize="12" dataProvider="{NetworkProtocol}" selectedIndex="0"  width="169"  x="12" y="225"  id="nw_proto" />
+				</mx:FormItem>	
+			</mx:Form>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Layer 4" width="100%" height="100%" creationPolicy="all">			
+			<mx:Form x="48" y="95" verticalGap="20" width="358" height="121">
+				<mx:FormItem label="Source Port" paddingLeft="25" fontSize="16" paddingTop="8">
+					<s:TextInput id="tp_src"/>
+				</mx:FormItem>
+				<mx:FormItem label="Destination Port" paddingLeft="25" fontSize="16">
+					<s:TextInput id="tp_dst"/>
+				</mx:FormItem>			
+			</mx:Form>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Action" width="100%" height="100%" fontWeight="normal" creationPolicy="all">
+			<mx:Form height="81" width="394" x="55" y="36">
+			<mx:FormItem label="Action" paddingLeft="25" fontSize="16" width="336" creationPolicy="auto">
+				<s:DropDownList fontSize="12" dataProvider="{action_data}" width="169" id="action" selectedIndex="0"  change="formitem1_clickHandler(event)"/>
+			</mx:FormItem>
+				</mx:Form>
+			<mx:Form x="57"  y="135">			
+				<mx:FormItem  visible="false" id="out_port" paddingLeft="25" fontSize="16" creationPolicy="auto">
+					<s:DropDownList fontSize="12" id="outPort" dataProvider="{port_data}" selectedIndex="0"  width="169"  x="12" y="225"  />
+				</mx:FormItem>							
+			</mx:Form>
+			<s:Label x="130" y="139" visible="false" id="action_args_name" width="221" height="29" fontSize="16"/>
+			<s:TextInput x="130" y="164" visible="false" id="action_args" width="195" />
+			<s:Label x="130" y="195" visible="false" id="tip" width="221" height="29" fontSize="16"/>			
+				<s:Button y="249" horizontalCenter="-84" label="Add   Action" 
+						  width="113" height="29" chromeColor="#0155BD" color="#FFFFFF" 
+						  fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+						  textDecoration="none" lineThrough="false" click="Add(event)"/>
+				<s:Button y="249" x="254" label="Close"  width="113" height="29" chromeColor="#0155BD"
+						  color="#FFFFFF" fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+						  textDecoration="none" lineThrough="false" click="close(event)"/>				
+			</s:NavigatorContent>
+		<s:NavigatorContent label="Delete FlowEntry" width="100%" height="100%">
+			<s:Label x="86" y="91" text="please input the name of deleted flow entry: " width="194" height="22"/>
+			<s:TextInput x="151" y="121" width="216" id="flowEntryName"/>
+			<s:Button y="197" horizontalCenter="-5" label="delete flow entry" 
+					  width="113" height="29" chromeColor="#0155BD" color="#FFFFFF" 
+					  fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+					  textDecoration="none" lineThrough="false" click="deleteFlowEntry(event)"/>
+		</s:NavigatorContent>
+	</mx:TabNavigator>
+</s:TitleWindow>

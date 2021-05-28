@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"    
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="462" height="434"
+			   close="this.parent.removeChild(this)"
+			   backgroundColor="#FFFFFF" dropShadowVisible="true" borderVisible="true" borderColor="#CEBCBC" contentBackgroundColor="#FAFAFA" 
+			   fontFamily="Times New Roman">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Declarations>		
+		<mx:RemoteObject id="AclRuleService" destination="AclRuleService" >  
+			<mx:method name="AddRule" result="addResult(event)"/>
+		</mx:RemoteObject>	
+	</fx:Declarations>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			[Bindable]
+			private var proto:ArrayCollection = new ArrayCollection(["Please Select a proto","TCP","UDP","ICMP","ANY"]);
+			[Bindable]
+			private var action_this:ArrayCollection = new ArrayCollection(["Please Select a action","deny","allow"]);
+			
+			protected function close(event:MouseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Script>
+			<![CDATA[				
+				import Components.Rule;
+				
+				protected function addRule(event:MouseEvent):void{
+					var rule:Rule = new Rule();
+					
+					var switchDp_id:String;
+					switchDp_id=FlexGlobals.topLevelApplication.activeItem.getDp_id();
+					
+					var controllerType:String;
+					
+					var controllerId:int;
+					var controllertypeId:int;// controller type id 1:Floodlight  0:Ryu
+					//get current selected controller ID
+					controllerId=FlexGlobals.topLevelApplication.activeItem.getCrl_id();
+					 
+					var temp:ArrayCollection = FlexGlobals.topLevelApplication.ac_controller;
+					//select current controller type with controller id
+					for(var i:int = 0;i<temp.length;i++){
+						if(temp[i].id==controllerId){
+							controllerType=temp[i].type;
+							break;
+						}
+					}
+					//set switch DP_id and set controller type 
+					if(controllerType=="Floodlight")
+					{
+						controllertypeId=1;
+						//Alert.show(switchDp_id);
+						//remove the ":" in the dpid of specified switch controlled by Floodlight
+						var arr:Array=new Array();
+						arr = switchDp_id.split(':');
+						switchDp_id= arr[0].toString();
+						for(var f_num:int = 1;f_num<8;f_num++)
+						{
+							switchDp_id=switchDp_id+arr[f_num].toString();
+						}
+					}
+					else if(controllerType=="Ryu")
+					{
+						controllertypeId=0;
+						switchDp_id="000000000000000"+switchDp_id;
+					}
+					
+					
+					getRuleData(rule,controllertypeId);
+				    //call backend AclRuleService.AddRule, add ACL rule
+					AclRuleService.AddRule(rule,controllertypeId,switchDp_id,controllerId);
+				}
+				
+				private function addResult(event:ResultEvent):void{
+					Alert.show(""+AclRuleService.AddRule.lastResult,"prompt");
+					return;
+				} 
+				
+				 protected function getRuleData(rule:Rule,controllerId:int):void{
+					if(nw_proto.selectedItem=="TCP"){
+						rule.nw_proto = "TCP";
+					}
+					else if(nw_proto.selectedItem=="UDP")
+					{
+						rule.nw_proto = "UDP";
+					}
+					else if(nw_proto.selectedItem=="ICMP")
+					{
+						rule.nw_proto = "ICMP";
+					}
+					else if(nw_proto.selectedItem=="ANY")
+					{
+						rule.nw_proto = "ANY";
+					}
+					
+					if(src_ip)
+					{
+						rule.src_ip=StringUtil.trim(src_ip.text);
+						
+					}
+					if(dst_ip)
+					{
+						rule.dst_ip=StringUtil.trim(dst_ip.text);
+						
+					}
+					if(tp_dst)
+					{
+						rule.tp_dst= parseInt(StringUtil.trim(tp_dst.text));
+					}
+					if(action.selectedItem=="deny"){
+						if(controllerId==0)
+						{
+							rule.action = "DENY";
+						}
+						else
+						{
+							rule.action = "deny";
+						}
+					}else if(action.selectedItem=="allow"){
+						if(controllerId==0)
+						{
+							rule.action = "ALLOW";
+						}
+						else
+						{
+							rule.action = "DENY";
+						}
+					}
+				}
+			
+			]]>
+		</fx:Script>
+	
+		<s:NavigatorContent label="Add_Rule" width="100%" height="100%" backgroundColor="#FFFFFF" creationPolicy="all">
+			<mx:Form  verticalCenter="0" horizontalCenter="0" verticalGap="20" height="346" width="372">
+				<mx:FormItem label="Src_Ip" paddingLeft="8" fontSize="16">
+					<s:TextInput id="src_ip"/>
+				</mx:FormItem>
+				<mx:FormItem label="Dst_Ip" paddingLeft="8" fontSize="16" creationPolicy="auto">
+					<s:TextInput id="dst_ip" />
+				</mx:FormItem>
+				<mx:FormItem label="Action" paddingLeft="8" fontSize="16" creationPolicy="auto">
+					<s:DropDownList fontSize="12" dataProvider="{action_this}" selectedIndex="0"  width="169"  x="12" y="225"  id="action" />
+				</mx:FormItem>
+				<mx:FormItem label="Nw_Proto" paddingLeft="8" fontSize="16">
+					<s:DropDownList fontSize="12" dataProvider="{proto}" selectedIndex="0"  width="169"  x="12" y="225"  id="nw_proto" />
+				</mx:FormItem>
+				<mx:FormItem label="Tp_Dst" paddingLeft="8" fontSize="16">
+					<s:TextInput id="tp_dst"/>
+				</mx:FormItem>
+			</mx:Form>
+			
+			<s:Button y="290" horizontalCenter="-84" label="Add Rule"
+					  width="113" height="29" chromeColor="#0155BD" color="#FFFFFF" 
+					  fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+					  textDecoration="none" lineThrough="false" click="addRule(event)"/>
+			<s:Button y="290" x="260" label="Close"  width="113" height="29" chromeColor="#0155BD"
+					  color="#FFFFFF" fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+					  textDecoration="none" lineThrough="false" click="close(event)" />	
+		</s:NavigatorContent>
+</s:TitleWindow>

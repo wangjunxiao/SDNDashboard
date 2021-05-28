@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"    
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="462" height="434"
+			   close="this.parent.removeChild(this)"
+			   backgroundColor="#FFFFFF" dropShadowVisible="true" borderVisible="true" borderColor="#CEBCBC" contentBackgroundColor="#FAFAFA" 
+			   fontFamily="Times New Roman">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Declarations>		
+		<mx:RemoteObject id="AclRuleService" destination="AclRuleService" >  
+			<mx:method name="DeleteRule" result="deleteResult(event)"/>
+		</mx:RemoteObject>	
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import Components.Rule;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
+			
+			import spark.components.mediaClasses.VolumeBar;
+	
+			
+			
+			
+			protected function close(event:MouseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Script>
+			<![CDATA[
+				
+				
+				protected function deleteRule(event:MouseEvent):void{
+					var rule:Rule = new Rule();
+					
+					var rule_id:int;
+					
+					var switchDp_id:String;
+					switchDp_id=FlexGlobals.topLevelApplication.activeItem.getDp_id();
+					
+					var controllerType:String;
+					
+					var controllerId:int;
+					var controllertypeId:int;//controller type id  1:Floodlight  0:Ryu
+					controllerId=FlexGlobals.topLevelApplication.activeItem.getCrl_id();
+					
+					var temp:ArrayCollection = FlexGlobals.topLevelApplication.ac_controller;
+					for(var i:int = 0;i<temp.length;i++){
+						if(temp[i].id==controllerId){
+							controllerType=temp[i].type;
+							break;
+						}
+					}
+					//set switch DP_id and related controller's type
+					if(controllerType=="Floodlight")
+					{
+						controllertypeId=1;
+						//Alert.show(switchDp_id);
+						var arr:Array=new Array();
+						arr = switchDp_id.split(':');
+						switchDp_id= arr[0].toString();
+						for(var f_num:int = 1;f_num<8;f_num++)
+						{
+							switchDp_id=switchDp_id+arr[f_num].toString();
+						}
+					}
+					else if(controllerType=="Ryu")
+					{
+						controllertypeId=0;
+						switchDp_id="000000000000000"+switchDp_id;
+					}
+					getRuleData(rule);
+					rule_id=rule.ruleid;
+					
+					
+					AclRuleService.DeleteRule(rule_id,controllertypeId,switchDp_id,controllerId);
+				}
+				
+				private function deleteResult(event:ResultEvent):void{
+					Alert.show(""+AclRuleService.DeleteRule.lastResult,"prompt");
+					return;
+				} 
+				
+				
+				
+				protected function getRuleData(rule:Rule):void{
+					rule.ruleid=parseInt(StringUtil.trim(rule_id.text));
+				}
+				
+			]]>
+		</fx:Script>
+	
+	
+	
+	<s:NavigatorContent label="Delete_Rule" width="100%" height="100%" backgroundColor="#FFFFFF" creationPolicy="all">
+		<mx:Form  verticalCenter="0" horizontalCenter="0" verticalGap="20" height="346" width="372">
+			<mx:FormItem label="Rule_Id" paddingLeft="8" fontSize="16">
+				<s:TextInput id="rule_id"/>
+			</mx:FormItem>
+		</mx:Form>
+		
+		<s:Button y="270" horizontalCenter="-84" label="Delete Rule"
+				  width="113" height="29" chromeColor="#0155BD" color="#FFFFFF" 
+				  fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+				  textDecoration="none" lineThrough="false" click="deleteRule(event)"/>
+		<s:Button y="270" x="254" label="Close"  width="113" height="29" chromeColor="#0155BD"
+				  color="#FFFFFF" fontFamily="Times New Roman" fontSize="15" fontWeight="bold" fontStyle="normal"
+				  textDecoration="none" lineThrough="false" click="close(event)"/>	
+	</s:NavigatorContent>
+</s:TitleWindow>

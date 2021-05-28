@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<service id="remoting-service" class="flex.messaging.services.RemotingService">
+
+	<adapters>
+		<adapter-definition id="java-object"
+			class="flex.messaging.services.remoting.adapters.JavaAdapter"
+			default="true" />
+	</adapters>
+
+	<default-channels>
+		<channel ref="my-amf" />
+	</default-channels>
+
+	<destination id="FlowEntryService">
+		<properties>
+			<factory>spring</factory>
+			<source>FlowEntryService</source>
+			<include-methods>
+				<method name="createFlowEntry" />
+				<method name="deleteFlowEntry" />
+				<method name="queryFlowEntry" />
+			</include-methods>
+		</properties>
+	</destination>
+
+	<destination id="show_firewall_enable">
+		<properties>
+			<factory>spring</factory>
+			<source>RyuService</source>
+			<include-methods>
+				<method name="FireWallEnable" />
+			</include-methods>
+		</properties>
+	</destination>
+
+	<!-- add extra controller config -->
+	<destination id="ConfigControllerService">
+		<properties>
+			<factory>spring</factory>
+			<source>ConfigControllerService</source>
+			<include-methods>
+				<method name="addController" />
+				<method name="removeController" />
+			</include-methods>
+		</properties>
+	</destination>
+
+	<destination id="AclRuleService">
+		<properties>
+			<factory>spring</factory>
+			<source>AclRuleService</source>
+			<include-methods>
+				<method name="AddRule" />
+				<method name="DeleteRule" />
+				<method name="QueryRule" />
+			</include-methods>
+		</properties>
+	</destination>
+
+	<destination id="dbInfo_getAll_Service">
+		<properties>
+			<factory>spring</factory>
+			<source>DBInfoService</source>
+			<include-methods>
+				<method name="controller_getAll" />
+				<method name="switch_getAll" />
+				<method name="flow_getAll" />
+				<method name="port_getAll" />
+				<method name="host_getAll" />
+				<method name="link_getAll" />
+				<method name="portStats_getAll" />
+			</include-methods>
+		</properties>
+	</destination>
+
+	<destination id="dbInfo_getById_Service">
+		<properties>
+			<factory>spring</factory>
+			<source>DBInfoService</source>
+			<include-methods>
+				<method name="controller_getById" />
+				<method name="switch_getById" />
+				<method name="flow_getById" />
+				<method name="port_getById" />
+				<method name="host_getById" />
+				<method name="link_getById" />
+				<method name="getPortStatsByDpID"/>
+			</include-methods>
+		</properties>
+	</destination>
+
+	<destination id="dbInfo_insert_Service">
+		<properties>
+			<factory>spring</factory>
+			<source>DBInfoService</source>
+			<include-methods>
+				<method name="controller_insert" />
+				<method name="switch_insert" />
+				<method name="flow_insert" />
+				<method name="port_insert" />
+				<method name="host_insert" />
+				<method name="link_insert" />
+			</include-methods>
+		</properties>
+	</destination>
+
+	<destination id="dbInfo_delById_Service">
+		<properties>
+			<factory>spring</factory>
+			<source>DBInfoService</source>
+			<include-methods>
+				<method name="controller_delById" />
+				<method name="switch_delById" />
+				<method name="flow_delById" />
+				<method name="port_delById" />
+				<method name="host_delById" />
+				<method name="link_delById" />
+			</include-methods>
+		</properties>
+	</destination>
+
+	<destination id="dbInfo_getId_Service">
+		<properties>
+			<factory>spring</factory>
+			<source>DBInfoService</source>
+			<include-methods>
+				<method name="switch_getId" />
+				<method name="port_getId" />
+			</include-methods>
+		</properties>
+	</destination>
+
+	<destination id="dbInfo_delAll_Service">
+		<properties>
+			<factory>spring</factory>
+			<source>DBInfoService</source>
+			<include-methods>
+				<method name="switch_delAll" />
+				<method name="flow_delAll" />
+				<method name="host_delAll" />
+				<method name="port_delAll" />
+				<method name="link_delAll" />
+			</include-methods>
+		</properties>
+	</destination>
+
+</service>
+
+	

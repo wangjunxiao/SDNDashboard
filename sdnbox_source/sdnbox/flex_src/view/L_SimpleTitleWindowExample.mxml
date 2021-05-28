@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"    
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="386" height="466"
+			   close="PopUpManager.removePopUp(this)" backgroundColor="#F2EBEB">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import Components.Host;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;		
+			
+			[Bindable]
+			private var link_id:String = FlexGlobals.topLevelApplication.activeLink.getlink_id();
+			[Bindable]
+			private var f_switchid:String = FlexGlobals.topLevelApplication.activeLink.fromObj.getSwitch_id();
+			[Bindable]
+			private var t_switchid:String = FlexGlobals.topLevelApplication.activeLink.toObj.getSwitch_id();
+			[Bindable]
+			private var f_port:String = FlexGlobals.topLevelApplication.activeLink.f_port;
+			[Bindable]
+			private var t_port:String = FlexGlobals.topLevelApplication.activeLink.t_port;
+			[Bindable]
+			private var type_data:ArrayCollection = new ArrayCollection(
+				["ethernet","fiber","wireless"]);
+		]]>
+	</fx:Script>
+	<mx:TabNavigator x="9.7" y="3.35" width="363" height="423" backgroundColor="#EDDFDF">
+		<s:NavigatorContent label="Configuration" width="100%" height="100%"
+							contentBackgroundColor="#FDFAFA" chromeColor="#FBFAFA" backgroundColor="#E8DDDD">
+			<s:ToggleButton x="-2" y="6" label="Configuration" width="363" chromeColor="#E8DDDD" />
+			<s:Label x="60" y="35" text="Link Information" width="244" height="19" fontFamily="Times New Roman" fontSize="16" textAlign = "center"/>
+			<mx:Form x="41" y="57">
+				<mx:FormItem label="id">
+					<s:TextInput editable="false" contentBackgroundColor="#FFFFFF"
+								  text="link_{link_id}"/>
+				</mx:FormItem>
+				<mx:FormItem label="name">
+					<s:TextInput text="link_{link_id}"/>
+				</mx:FormItem>
+				<mx:FormItem label="source">
+					<s:TextInput editable="false" text="{f_switchid}" contentBackgroundColor="#EFE8E8"/>
+				</mx:FormItem>
+				<mx:FormItem label="F_port">
+					<s:TextInput editable="false" text="{f_port}" contentBackgroundColor="#EFE8E8"/>
+				</mx:FormItem>
+				<mx:FormItem label="desination">
+					<s:TextInput editable="false" text="{t_switchid}" contentBackgroundColor="#EFE8E8"/>
+				</mx:FormItem>
+				<mx:FormItem label="T_port">
+					<s:TextInput editable="false" text="{t_port}" contentBackgroundColor="#EFE8E8"/>
+				</mx:FormItem>
+				<mx:FormItem label="type">
+					<s:DropDownList dataProvider="{type_data}" selectedItem="{type_data.getItemAt(0)}"/>
+				</mx:FormItem>				
+				<mx:FormItem label="Bandwidth(MB/s)">
+					<s:DropDownList selectedItem="null"/>
+				</mx:FormItem>				
+				<mx:FormItem label="Delay(ms)">
+					<s:TextInput text="null"/>
+				</mx:FormItem>
+				<mx:FormItem label="Loss(%)">
+					<s:TextInput text="null"/>
+				</mx:FormItem>				
+			</mx:Form>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Quaility of Service" width="100%" height="100%" enabled="false"/>	
+		<s:NavigatorContent label="Queue Configuration" width="100%" height="100%" enabled="false"/>		
+	</mx:TabNavigator>
+</s:TitleWindow>

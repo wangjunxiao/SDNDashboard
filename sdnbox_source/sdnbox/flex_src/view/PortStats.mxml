@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   initialize="initializeHandler(event)"
+			   close="this.parent.removeChild(this)"
+			   width="742">
+	<s:layout>  
+		<s:BasicLayout/>  
+	</s:layout>  
+	
+	<!-- requiring every underlay switch have unique dp_id -->
+	<fx:Declarations>
+		<s:RemoteObject id="dbInfo_getById_Service" destination="dbInfo_getById_Service" >
+			<s:method name="getPortStatsByDpID" result="resultHandler(event)" fault="faultHandler(event)" />
+		</s:RemoteObject>
+	</fx:Declarations>
+	
+	<fx:Style>
+		.myStyle {
+			fontFamily:Verdana;
+			fontSize:12;
+			color:#4691E1;
+			fontWeight:bold;
+			fontStyle:italic;
+		}
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.charts.series.ColumnSeries;
+			import mx.charts.series.LineSeries;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectUtil;
+			import mx.core.FlexGlobals;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			private var dataArray :ArrayCollection;
+			[Bindable]
+			private var time_interval_data:ArrayCollection = new ArrayCollection(["Last 30 Minutes","Last Hour",
+				"Last 6 Hour","Last 24 Hour"]);
+			[Bindable]
+			private var port_no_data:ArrayCollection = new ArrayCollection();
+			
+			public var dp_id:String;
+			private var array:Array=[];
+			
+			protected function resultHandler(event:ResultEvent):void{
+				dataArray = event.result as ArrayCollection;
+				addLineToChart();
+			}
+			
+			public function addLineToChart():void{
+				//1.get every required parameter name   
+				// get the first object of AC, then get its all parameters 
+				var dataStruct:Object = dataArray.getItemAt(0);
+				var objInfo:Object = ObjectUtil.getClassInfo(dataStruct); 
+				var fieldNames:Array = objInfo["properties"] as Array;
+				var newFieldNames:Array = [];
+				for each (var q:String in fieldNames){
+					if(q!="time"){
+						newFieldNames.push(q);
+					}
+				}
+				/*2. get corresponding object according to its name */ 
+				array=[];
+				for (var b:String in newFieldNames) {
+					var lineSeries:LineSeries = new LineSeries();
+					lineSeries.xField="time" 
+					lineSeries.yField = newFieldNames[b]; 
+					lineSeries.displayName = newFieldNames[b]; 
+					lineSeries.setStyle("form", "curve"); 
+					array.push(lineSeries); 
+				} 
+				setYAxisMaxAndMinAndInterval(newFieldNames);//set the Y axis range and interval
+				initPort_no_DataGridDataArr(newFieldNames); //initialize table data
+				myChart.series=array; //put data into table
+			}
+			
+			private function setYAxisMaxAndMinAndInterval(feilds:Array):void{
+				/*set the Y axis range and interval
+				(fix bug: data display exception)*/
+				var yAxisMaximum:int = 0;
+				var yAxisMinimun:int = int.MAX_VALUE;
+				for each(var object:Object in dataArray){
+					for each(var port:String in feilds){
+						//note that use “[]” instead of "." to get child parameter
+						if(object[port] > yAxisMaximum)
+							yAxisMaximum = object[port];
+						if(object[port]<yAxisMinimun)
+							yAxisMinimun = object[port];
+					} 
+				}
+				if(yAxisMaximum!=yAxisMinimun){
+					laxis.interval = Math.floor((yAxisMaximum - yAxisMinimun)/6);
+				}else{
+					laxis.interval = Math.floor(yAxisMaximum/6);
+				}
+				
+				laxis.maximum = Math.floor(yAxisMaximum) + laxis.interval;
+				laxis.minimum = Math.ceil(yAxisMinimun) - laxis.interval;
+			}
+			
+			private function initPort_no_DataGridDataArr(feilds:Array):void{
+				if(port_no_data!=null)
+					port_no_data.removeAll();
+				var port_flow_data:Array = [];
+				var feilds_size:int  = feilds.length;
+				for(var i:int = 0;i<feilds_size;i++){
+					port_flow_data[i] =0;
+				}
+				
+				var flow_total:int = 0;
+				for each(var object:Object in dataArray){
+					for(var j:int = 0;j<feilds_size;j++){
+						flow_total += object[feilds[j]];
+						port_flow_data[j] += object[feilds[j]];
+					}
+				}
+				
+				for(var k:int = 0;k<feilds_size;k++){
+					port_no_data.addItem({"port_no":feilds[k],"flowstats":port_flow_data[k]+"KB",
+					"present_flow":Math.round(port_flow_data[k]*100/flow_total)+"%"});
+				}
+				port_no_data.addItem({"port_no":"Total","flowstats":flow_total + "KB",
+					"present_flow":"100%"});
+				
+				
+				port_no_DataGrid.dataProvider  = port_no_data;
+				port_no_DataGrid.rowCount = port_no_data.length;
+			}
+			
+			protected function faultHandler(event:FaultEvent):void{
+				Alert.show(event.message + "" , "Error");
+			}
+			
+			
+			
+			protected function initializeHandler(event:FlexEvent):void
+			{
+				dbInfo_getById_Service.getPortStatsByDpID(dp_id,30);
+			}
+
+
+			protected function time_interval_changeHandler(event:IndexChangeEvent):void
+			{
+				if(time_interval.selectedItem=="Last 30 Minutes")
+					dbInfo_getById_Service.getPortStatsByDpID(dp_id,30);
+				else if(time_interval.selectedItem=="Last Hour")
+					dbInfo_getById_Service.getPortStatsByDpID(dp_id,60);
+				else if(time_interval.selectedItem=="Last 6 Hour")
+					dbInfo_getById_Service.getPortStatsByDpID(dp_id,360);
+				else if(time_interval.selectedItem=="Last 24 Hour")
+					dbInfo_getById_Service.getPortStatsByDpID(dp_id,1440);
+			}
+
+
+		]]>
+	</fx:Script>
+	 
+	<s:Group>
+		<s:layout>
+			<s:VerticalLayout />
+		</s:layout>
+		<mx:Legend dataProvider="{myChart}"  
+				   height="20"  
+				   id="legend_id"/>  
+		<mx:LineChart id="myChart"  
+					  dataProvider="{dataArray}"   
+					  showDataTips="true" width="503"
+					  axisTitleStyleName="myStyle">  
+			<mx:verticalAxis>  
+				<mx:LinearAxis id="laxis" 
+							   autoAdjust="true"
+							   baseAtZero="false"
+							   title="rate(KB)"/>  
+			</mx:verticalAxis>  
+			<mx:horizontalAxis>  
+				<mx:CategoryAxis id="ca"
+								  title="Time/(s)"
+								 dataProvider="{dataArray}"  
+								 categoryField="time"/>  
+				
+			</mx:horizontalAxis>  
+			<mx:horizontalAxisRenderers>  
+				<mx:AxisRenderer axis="{ca}"  
+								 canDropLabels="true"/>  
+			</mx:horizontalAxisRenderers>  
+			<mx:series>  
+			</mx:series>  
+		</mx:LineChart>  
+	</s:Group>
+	<s:DropDownList x="584" y="17" width="145" height="28" id="time_interval" prompt="interval" 
+					chromeColor="#CDE0BD" color="#040404" dataProvider="{time_interval_data}"
+					change="time_interval_changeHandler(event)" selectedIndex="0"/>
+	<mx:Image x="554" y="17" source="img/history_1.png" height="28" width="30"/>
+	<mx:DataGrid x="554" y="92" width="175"  id="port_no_DataGrid" chromeColor="#DBE6AF">
+		<mx:columns>
+			<mx:DataGridColumn headerText="portid"  dataField="port_no" textAlign="center"/>
+			<mx:DataGridColumn headerText="rate(KB)"  dataField="flowstats" textAlign="center"/>
+			<mx:DataGridColumn headerText="%traffic" dataField="present_flow" textAlign="center"/>
+		</mx:columns>
+	</mx:DataGrid>
+	
+	
+	
+</s:TitleWindow>

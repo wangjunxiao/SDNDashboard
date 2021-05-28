@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Flow">
+
+	<typeAlias alias="Flow" type="cn.dlut.entity.Flow" />
+
+	<resultMap class="Flow" id="Flow">
+		<result property="id" column="id" />
+		<result property="switch_id" column="switch_id" />
+		<result property="table_id" column="table_id" />
+		<result property="byte_count" column="byte_count" />
+		<result property="packet_count" column="packet_count" />
+		<result property="idle_timeout" column="idle_timeout" />
+		<result property="hard_timeout" column="hard_timeout" />
+		<result property="duration_sec" column="duration_sec" />
+		<result property="duration_nsec" column="duration_nsec" />
+		<result property="priority" column="priority" />
+		<result property="cookie" column="cookie" />
+		<result property="dl_type" column="dl_type" />
+		<result property="dl_src" column="dl_src" />
+		<result property="dl_dst" column="dl_dst" />
+		<result property="dl_vlan" column="dl_vlan" />
+		<result property="nw_proto" column="nw_proto" />
+		<result property="nw_tos" column="nw_tos" />
+		<result property="nw_src" column="nw_src" />
+		<result property="nw_dst" column="nw_dst" />
+		<result property="nw_src_masklen" column="nw_src_masklen" />
+		<result property="nw_dst_masklen" column="nw_dst_masklen" />
+		<result property="tp_src" column="tp_src" />
+		<result property="tp_dst" column="tp_dst" />
+		<result property="in_port" column="in_port" />
+		<result property="action" column="action" />
+		<result property="ctime" column="ctime" />
+	</resultMap>
+
+	<select id="getAll" resultClass="Flow">
+		select * from s_flow_info
+	</select>
+
+	<!-- select by id -->
+	<select id="getById" resultClass="Flow" parameterClass="Integer">
+		select *
+		from s_flow_info
+		where id=#id#
+	</select>
+
+	<!-- delete by id -->
+	<delete id="delById" parameterClass="Integer">
+		delete from s_flow_info
+		where
+		id=#id#
+	</delete>
+
+	<!-- delete by ctrl_ID -->
+	<delete id="delByCtrlId" parameterClass="Integer">
+		delete from s_flow_info
+		where
+		switch_id in (select id from s_switch_info where
+		s_switch_info.ctrl_id=#ctrl_id#)
+	</delete>
+
+	<!-- delete all entries ,
+	     2015-12-08 modified from delete to truncate-->
+	<delete id="delAll">
+		<!-- delete from s_flow_info -->
+		truncate s_flow_info;
+	</delete>
+
+	<!-- insert -->
+	<insert id="insert" parameterClass="Flow">
+		insert into
+		s_flow_info(switch_id,table_id,byte_count,packet_count,idle_timeout,hard_timeout,duration_sec,duration_nsec,priority,cookie,dl_type,dl_src,dl_dst,dl_vlan,nw_proto,nw_tos,nw_src,nw_dst,nw_src_masklen,nw_dst_masklen,tp_src,tp_dst,in_port,action,ctime)
+		values(#switch_id#,#table_id#,#byte_count#,#packet_count#,#idle_timeout#,#hard_timeout#,#duration_sec#,#duration_nsec#,#priority#,#cookie#,#dl_type#,#dl_src#,#dl_dst#,#dl_vlan#,#nw_proto#,#nw_tos#,#nw_src#,#nw_dst#,#nw_src_masklen#,#nw_dst_masklen#,#tp_src#,#tp_dst#,#in_port#,#action#,#ctime#)
+	</insert>
+	
+	<!--<insert id="insert" parameterClass="Flow">
+		insert into
+		s_flow_info(switch_id,table_id,byte_count,packet_count,idle_timeout,hard_timeout,duration_sec,duration_nsec,priority,cookie,dl_type,dl_src,dl_dst,dl_vlan,nw_proto,nw_tos,nw_src,nw_dst,nw_src_masklen,nw_dst_masklen,tp_src,tp_dst,in_port,action,ctime)
+		select
+		#switch_id#,#table_id#,#byte_count#,#packet_count#,#idle_timeout#,#hard_timeout#,#duration_sec#,#duration_nsec#,#priority#,#cookie#,#dl_type#,#dl_src#,#dl_dst#,#dl_vlan#,#nw_proto#,#nw_tos#,#nw_src#,#nw_dst#,#nw_src_masklen#,#nw_dst_masklen#,#tp_src#,#tp_dst#,#in_port#,#action#,#ctime#
+		from dual where not exists(select
+		switch_id,table_id,byte_count,packet_count,idle_timeout,hard_timeout,duration_sec,duration_nsec,priority,cookie,dl_type,dl_src,dl_dst,dl_vlan,nw_proto,nw_tos,nw_src,nw_dst,nw_src_masklen,nw_dst_masklen,tp_src,tp_dst,in_port,action
+		from s_flow_info where switch_id=#switch_id# and table_id=#table_id#
+		and byte_count=#byte_count# and packet_count=#packet_count# and
+		idle_timeout=#idle_timeout# and hard_timeout=#hard_timeout# and
+		duration_sec=#duration_sec# and duration_nsec=#duration_nsec# and
+		priority=#priority# and cookie=#cookie# and dl_type=#dl_type# and
+		dl_src=#dl_src# and dl_dst=#dl_dst# and dl_vlan=#dl_vlan# and
+		nw_proto=#nw_proto# and nw_tos=#nw_tos# and nw_src=#nw_src# and
+		nw_dst=#nw_dst# and nw_src_masklen=#nw_src_masklen# and
+		tp_src=#tp_src# and nw_dst_masklen=#nw_dst_masklen# and
+		tp_dst=#tp_dst# and in_port=#in_port# and action=#action#)
+	</insert>-->
+
+</sqlMap>

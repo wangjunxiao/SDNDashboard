@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"    
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="386" height="466"
+			   close="PopUpManager.removePopUp(this)" backgroundColor="#F2EBEB">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import Components.Host;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			
+			[Bindable]
+			private var host_name:String = FlexGlobals.topLevelApplication.activeItem.host_Name;
+			[Bindable]
+			private var host_ip:String = FlexGlobals.topLevelApplication.activeItem.host_IP;
+			[Bindable]
+			private var mac_add:String = FlexGlobals.topLevelApplication.activeItem.Mac_Add;
+			[Bindable]
+			private var axis_x:String = FlexGlobals.topLevelApplication.activeItem.x;
+			[Bindable]
+			private var axis_y:String = FlexGlobals.topLevelApplication.activeItem.y;
+			[Bindable]
+			private var host_id:String = FlexGlobals.topLevelApplication.activeItem.host_ID;
+			
+			[Bindable]
+			private var active_data:ArrayCollection = new ArrayCollection(["true", "false"]);
+			[Bindable]
+			private var mask_data:ArrayCollection = new ArrayCollection(["255.255.255.0",
+				"255.0.0.0","255.255.0.0"]);
+			
+		/* 	private function init():void {
+				trace("### "+getQualifiedClassName(this.parentDocument));
+				trace("### "+getQualifiedClassName(FlexGlobals.topLevelApplication));
+				trace("### "+FlexGlobals.topLevelApplication.activeHost.host_IP);
+				
+			} */
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub					
+				FlexGlobals.topLevelApplication.activeItem.setHost_Name(_name.text);
+				FlexGlobals.topLevelApplication.activeItem.setHost_IP(_ip.text);
+				FlexGlobals.topLevelApplication.activeItem.setMac_Add(_mac.text);
+				Alert.show("you have changed the configuration!","Success");
+				PopUpManager.removePopUp(this);
+			}
+
+		]]>
+	</fx:Script>
+	<mx:TabNavigator x="9.7" y="3.35" width="363" height="423" backgroundColor="#EDDFDF">
+		<s:NavigatorContent label="Configuration" width="100%" height="100%"
+							contentBackgroundColor="#FDFAFA" chromeColor="#FBFAFA" backgroundColor="#E8DDDD">
+			<s:ToggleButton x="-2" y="6" label="Configuration" width="363" chromeColor="#E8DDDD" />
+			<s:Label x="60" y="35" text="{_name.text}-{_ip.text}" width="244" height="19" fontFamily="Times New Roman" fontSize="16" textAlign = "center"/>
+			<s:Label x="98" y="79" text="ID"/>
+			<s:Label x="79" y="109" text="Name"/>
+			<s:Label x="55" y="177" text="IP Address"/>
+			<s:Label x="82" y="210" text="Mask"/>
+			<s:Label x="43" y="246" text="Mac Address"/>
+			<s:Label x="83" y="144" text="Active" height="15"/>
+			<s:Label x="69" y="318" text="Position"/>
+			<s:TextInput x="149" y="106" text="{host_name}" id="_name"/>
+			<s:DropDownList x="149" y="142" width="70" 
+							selectedItem="{active_data.getItemAt(0)}" dataProvider="{active_data}"></s:DropDownList>
+			<s:TextInput x="149" y="175" text="{host_ip}" id="_ip"/>
+			<s:TextInput x="149" y="239" text="{mac_add}" id="_mac"/>
+			<s:Label x="149" y="316" text="x" fontSize="15" width="14"/>
+			<s:Label x="215" y="314" text="y" fontSize="15"/>
+			<s:TextInput x="233" y="312" width="42" id="_y" text="{axis_y}"/>
+			<s:TextInput x="165" y="312" width="42" id="_x" text="{axis_x}"/>
+			<s:TextInput x="149" y="72" text="{host_id}" id="h_id" editable="false"/>
+			<s:DropDownList x="149" y="206" width="131" 
+							selectedItem="{mask_data.getItemAt(0)}" dataProvider="{mask_data}"></s:DropDownList>
+			<s:Button x="123" y="276" label="Apply" click="button1_clickHandler(event)" width="115"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent label="Quaility of Service" width="100%" height="100%" enabled="false"/>	
+		<s:NavigatorContent label="Queue Configuration" width="100%" height="100%" enabled="false"/>		
+	</mx:TabNavigator>
+</s:TitleWindow>

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<utils:MyTitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:utils="utils.*"
+					 xmlns:cdg="view.*"
+					 layout="vertical"
+					 initialize="init1()" width="850" height="600" 
+					 close="this.parent.removeChild(this)" showCloseButton="true"
+					 verticalScrollPolicy="auto" horizontalScrollPolicy="auto" dropShadowVisible="true">
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.KeepOnly;
+			
+			[Bindable]
+			private var filter_attr:ArrayCollection = new ArrayCollection(["All", "LinkID","DestinationSwitchID","SourcePortID","DestinationPortID"]);			
+			//selected filter_attr related valuelist
+			[Bindable]
+			private var filter_valuelist:ArrayCollection = new ArrayCollection();
+			//current switchid related linklist
+			[Bindable]
+			private var linklist_ac:ArrayCollection=new ArrayCollection();
+			//all flow related linklist
+			[Bindable]
+			private var linklist_this:ArrayCollection=new ArrayCollection();
+			//full DataGrid
+			[Bindable]
+			private var filterlist:ArrayCollection=new ArrayCollection();
+			//current switchid
+			private var SourceSwitchID:int;
+			
+			
+			protected function init1():void{
+				SourceSwitchID=FlexGlobals.topLevelApplication.activeItem.getSwitch_id();
+				linklist_this=FlexGlobals.topLevelApplication.ac_link;
+				this.title="switch"+SourceSwitchID+"-link_dst switch list";
+				this.addEventListener(Event.RESIZE, titleWindowResized);
+				getdata();
+				getdata_all();
+				linklistDG.InitData(filterlist);
+			}
+			
+			
+			
+			
+			//call once when popping up window, then call at the moment of zooming
+			protected function titleWindowResized(event:Event):void{
+				
+				this.addEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+			//finished when zooming once, call at the moment of mouse up
+			protected function resizeCompleted(event:MouseEvent):void{
+				
+				this.removeEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			//get linklist_ac by linklist_this 
+			public function getdata():void{
+				var sourceswitchid:int;
+				if(linklist_ac.length!=0)
+					linklist_ac.removeAll();
+				for(var l_num:int = 0;l_num<linklist_this.length;l_num++){
+					sourceswitchid=linklist_this[l_num].src_switch_id as int;
+					if(sourceswitchid==SourceSwitchID)
+						linklist_ac.addItem(linklist_this[l_num]);
+				}
+			}
+			
+			//filter all
+			public function getdata_all():void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var l_num:int = 0;l_num<linklist_ac.length;l_num++){
+					filterlist.addItem(linklist_ac[l_num]);
+				}
+			}
+			//filter by linkid
+			public function getdata_linkid(id:int):void{
+				var linkid:int;
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var l_num:int = 0;l_num<linklist_ac.length;l_num++){
+					linkid=linklist_ac[l_num].id;
+					if(linkid==id)
+						filterlist.addItem(linklist_ac[l_num]);
+				}
+			}
+			//filter by destinationswitchid
+			public function getdata_destinationswitchid(destinationswitchid:int):void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var l_num:int = 0;l_num<linklist_ac.length;l_num++){
+					var dst_switch_id:int=linklist_ac[l_num].dst_switch_id;
+					if(dst_switch_id==destinationswitchid)
+						filterlist.addItem(linklist_ac[l_num]);
+				}
+			}
+			
+			//filter by sourceportid
+			public function getdata_sourceportid(sourceportid:int):void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var l_num:int = 0;l_num<linklist_ac.length;l_num++){
+					var src_port_id:int=linklist_ac[l_num].src_port_id;
+					if(src_port_id==sourceportid)
+						filterlist.addItem(linklist_ac[l_num]);
+				}
+			}
+			
+			//filter by destinationportid
+			public function getdata_destinationportid(destinationportid:int):void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				for(var l_num:int = 0;l_num<linklist_ac.length;l_num++){
+					var dst_port_id:int=linklist_ac[l_num].dst_port_id;
+					if(dst_port_id==destinationportid)
+						filterlist.addItem(linklist_ac[l_num]);
+				}
+			}
+			
+			
+			private function filterHandler(filter_attri:String):void{
+				if(filterlist.length!=0)
+					filterlist.removeAll();
+				switch(filter_attri){
+					case "All":
+						getdata_all();
+						break;
+					case "LinkID":
+						getdata_linkid(filter_value.selectedItem as int);
+						break;
+					case "DestinationSwitchID":
+						getdata_destinationswitchid(filter_value.selectedItem as int);
+						break;
+					case "SourcePortID":
+						getdata_sourceportid(filter_value.selectedItem as int);
+						break;
+					case "DestinationPortID":
+						getdata_destinationportid(filter_value.selectedItem as int);
+						break;
+				}
+				linklistDG.InitData(filterlist);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			private function filter_attri_valueCommitHandler():void{
+				var filter_attri:String=filter_attri.selectedItem;
+				var l_num:int;
+				if(filter_valuelist.length!=0)
+					filter_valuelist.removeAll();
+				switch(filter_attri){
+					case "All":
+						filter_value.dataProvider=filter_valuelist;
+						break;
+					case "LinkID":
+						for(l_num = 0;l_num<linklist_ac.length;l_num++){
+							filter_valuelist.addItem(linklist_ac[l_num].id);
+						}
+						filter_value.dataProvider=KeepOnly(filter_valuelist) as ArrayCollection;
+						break;
+					case "DestinationSwitchID":
+						for(l_num = 0;l_num<linklist_ac.length;l_num++){
+							filter_valuelist.addItem(linklist_ac[l_num].dst_switch_id);
+						}
+						filter_value.dataProvider=KeepOnly(filter_valuelist) as ArrayCollection;
+						break;
+					
+					case "SourcePortID":
+						for(l_num = 0;l_num<linklist_ac.length;l_num++){
+							filter_valuelist.addItem(linklist_ac[l_num].src_port_id);
+						}
+						filter_value.dataProvider=KeepOnly(filter_valuelist) as ArrayCollection;
+						break;
+					
+					case "DestinationPortID":
+						for(l_num = 0;l_num<linklist_ac.length;l_num++){
+							filter_valuelist.addItem(linklist_ac[l_num].dst_port_id);
+						}
+						filter_value.dataProvider=KeepOnly(filter_valuelist) as ArrayCollection;
+						break;
+				}				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	
+	<s:Spacer height="5"/>
+	
+	<s:Group>
+		<s:layout>
+			<s:HorizontalLayout/>
+		</s:layout>
+		
+		<s:DropDownList id="filter_attri" dataProvider="{filter_attr}" 
+						selectedItem="{filter_attr.getItemAt(0)}" valueCommit="filter_attri_valueCommitHandler()"/>
+		<s:DropDownList id="filter_value" width="200"/>
+		<s:Button id="filter" label="filter" fontWeight="bold" 
+				  click="filterHandler(filter_attri.selectedItem.toString())"/>
+		<s:Spacer width="20"/>
+	</s:Group>
+	
+	<!--  pageCount: entry number per page,default 20 -->
+	<cdg:CustomDataGrid id="linklistDG" width="800">
+		<cdg:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="id" headerText="LinkID"></s:GridColumn>   
+<!-- 			<s:GridColumn dataField="dst_switch_id" headerText="SourceSwitchID"></s:GridColumn>
+				<s:GridColumn dataField="src_port_id" headerText="SourcePortID"></s:GridColumn> -->
+ 			    <s:GridColumn dataField="dst_switch_id" headerText="DestinationSwitchID"></s:GridColumn>  
+				<s:GridColumn dataField="dst_port_id" headerText="DestinationPortID"></s:GridColumn>
+				<s:GridColumn dataField="ctime" headerText="CreatedTime"></s:GridColumn>
+			</s:ArrayList>
+		</cdg:columns>
+	</cdg:CustomDataGrid>
+	
+	
+</utils:MyTitleWindow>

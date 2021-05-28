@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Host">
+
+	<typeAlias alias="Host" type="cn.dlut.entity.Host" />
+
+	<resultMap class="Host" id="Host">
+		<result property="id" column="id" />
+		<result property="switch_id" column="switch_id" />
+		<result property="port_id" column="port_id" />
+		<result property="mac_addr" column="mac_addr" />
+		<result property="ip_addr" column="ip_addr" />
+		<result property="ctime" column="ctime" />
+		<result property="mtime" column="mtime" />
+	</resultMap>
+
+	<select id="getAll" resultClass="Host">
+		select * from s_host_info
+	</select>
+
+	<!-- select by id -->
+	<select id="getById" resultClass="Host" parameterClass="Integer">
+		 select *
+		 from s_host_info
+		 where id=#id#
+	</select>
+
+	<!-- delete by id -->
+	<delete id="delById" parameterClass="Integer">
+		delete from s_host_info where id=#id#
+	</delete>
+	
+	<!-- delete all entries ,
+	     2015-12-08 modified from delete to truncate-->
+	<delete id="delAll">
+		<!-- delete from s_host_info -->
+	</delete>
+	
+	<!-- insert -->
+	<insert id="insert" parameterClass="Host">
+		insert into s_host_info(switch_id,port_id,mac_addr,ip_addr,ctime,mtime)
+	 	values(#switch_id#,#port_id#,#mac_addr#,#ip_addr#,#ctime#,#mtime#)</insert>
+
+</sqlMap>

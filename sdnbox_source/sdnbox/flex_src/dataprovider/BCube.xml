@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<root>
+	<node id="1" name="Switch1"    type="switch" />
+	<node id="2" name="Switch2"    type="switch" />
+	<node id="3" name="Switch3"    type="switch" />
+	<node id="4" name="Switch4"    type="switch" />
+	  
+	<node id="5" name="Switch5"    type="switch" />
+	<node id="6" name="Switch6"    type="switch" />
+	<node id="7" name="Switch7"    type="switch" />
+	<node id="8" name="Switch8"    type="switch" />
+  
+    <node id="9" name="controller1" type="controller"/>
+	<node id="10" name="controller2" type="controller"/>
+	<node id="11" name="controller3" type="controller"/>
+	<node id="12" name="controller4" type="controller"/>
+	<node id="13" name="controller5" type="controller"/>
+	<node id="14" name="controller6" type="controller"/>
+	<node id="15" name="controller7" type="controller"/>
+	<node id="16" name="controller8" type="controller"/>
+	<node id="17" name="controller9" type="controller"/>
+	<node id="18" name="controller10" type="controller"/>
+	<node id="19" name="controller11" type="controller"/>
+	<node id="20" name="controller12" type="controller"/>
+	<node id="21" name="controller13" type="controller"/>
+	<node id="22" name="controller14" type="controller"/>
+	<node id="23" name="controller15" type="controller"/>
+	<node id="24" name="controller16" type="controller"/>
+	
+    <link id="1" fromNode="1" toNode="9" />
+    <link id="2" fromNode="1" toNode="13" />
+    <link id="3" fromNode="1" toNode="17" />
+    <link id="4" fromNode="1" toNode="21" />
+    
+    <link id="5" fromNode="2" toNode="10" />
+    <link id="6" fromNode="2" toNode="14" />
+    <link id="7" fromNode="2" toNode="18" />
+    <link id="8" fromNode="2" toNode="22" />
+    
+    <link id="9" fromNode="3" toNode="11" />
+    <link id="10" fromNode="3" toNode="15" />
+    <link id="11" fromNode="3" toNode="19" />
+    <link id="12" fromNode="3" toNode="23" />
+    
+    <link id="13" fromNode="4" toNode="12" />
+    <link id="14" fromNode="4" toNode="16" />
+    <link id="15" fromNode="4" toNode="20" />
+    <link id="16" fromNode="4" toNode="24" />
+    
+    <link id="17" fromNode="5" toNode="9" />
+    <link id="18" fromNode="5" toNode="10" />
+	<link id="19" fromNode="5" toNode="11" />	
+	<link id="20" fromNode="5" toNode="12" />
+	
+	<link id="21" fromNode="6" toNode="13" />
+	<link id="22" fromNode="6" toNode="14" />
+	<link id="23" fromNode="6" toNode="15" />
+	<link id="24" fromNode="6" toNode="16" />
+	
+	<link id="25" fromNode="7" toNode="17" />
+	<link id="26" fromNode="7" toNode="18" />
+	<link id="27" fromNode="7" toNode="19" />
+	<link id="28" fromNode="7" toNode="20" />
+	
+	<link id="29" fromNode="8" toNode="21" />
+	<link id="30" fromNode="8" toNode="22" />
+	<link id="31" fromNode="8" toNode="23" />
+	<link id="32" fromNode="8" toNode="24" />
+</root>

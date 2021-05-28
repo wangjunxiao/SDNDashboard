@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Controller">
+
+	<typeAlias alias="Controller" type="cn.dlut.entity.Controller" />
+
+	<resultMap class="Controller" id="Controller">
+		<result property="id" column="id" />
+		<result property="type" column="type" />
+		<result property="rest_url" column="rest_url" />
+		<result property="ctime" column="ctime" />
+
+	</resultMap>
+	
+	<select id="getIdByRestUrl" resultClass="Integer" parameterClass="String">
+		select id 
+		from s_controller_info
+		where rest_url=#rest_url#
+	</select>
+	
+	<select id="getAll" resultClass="Controller">
+		select * from s_controller_info
+	</select>
+
+	<!-- select by id -->
+	<select id="getById" resultClass="Controller" parameterClass="Integer">
+		select *
+		from s_controller_info
+		where id=#id#
+	</select>
+
+	<!-- delete by id -->
+	<delete id="delById" parameterClass="Integer">
+		delete from
+		s_controller_info
+		where
+		id=#id#
+	</delete>
+
+	<!-- insert -->
+	<insert id="insert" parameterClass="Controller">
+		insert into s_controller_info(id,type,rest_url,ctime)
+		values(#id#,#type#,#rest_url#,#ctime#)
+	</insert>
+	
+	<update id="updateRset_URL" parameterClass="Controller">
+		 update s_controller_info
+	    set type = #type#,id = #id#,
+	    ctime = #ctime#
+	    where rest_url = #rest_url#
+	</update>
+
+	<select id="getIdByType" resultClass="Integer" parameterClass="String">
+		select id from s_controller_info where type=#type#
+	</select>
+</sqlMap>

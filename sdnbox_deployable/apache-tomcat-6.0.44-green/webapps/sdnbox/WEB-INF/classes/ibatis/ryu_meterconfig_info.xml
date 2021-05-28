@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+
+<sqlMap namespace="RyuMeterConfig">
+
+	<typeAlias alias="RyuMeterConfig" type="cn.dlut.entity.RyuMeterConfig" />
+
+	<resultMap class="RyuMeterConfig" id="RyuMeterConfig">
+		<result property="id" column="id" />
+		<result property="switch_id" column="switch_id" />
+		<result property="ctrl_id" column="ctrl_id" />
+		<result property="meter_id" column="meter_id" />
+		<result property="flags" column="flags" />
+		<result property="bands" column="bands" />
+		<result property="ctime" column="ctime" />
+	</resultMap>
+
+
+	<select id="getAll" resultClass="RyuMeterConfig">
+		select * from
+		ryu_meterconfig_info
+	</select>
+
+	<select id="getById" resultClass="RyuMeterConfig"
+		parameterClass="Integer">
+		select * from ryu_meterconfig_info where id=#id#
+	</select>
+
+	<insert id="insert" parameterClass="RyuMeterConfig">
+		insert into
+		ryu_meterconfig_info(switch_id,ctrl_id,meter_id,flags,bands,ctime)
+		select
+		#switch_id#,#ctrl_id#,#meter_id#,#flags#,#bands#,#ctime# from dual where
+		not exists(select switch_id,ctrl_id,meter_id,flags,bands from
+		ryu_meterconfig_info where switch_id=#switch_id# and ctrl_id=#ctrl_id# and
+		meter_id=#meter_id# and flags=#flags# and bands=#bands#)
+	</insert>
+
+	<delete id="delById" parameterClass="Integer">
+		delete from
+		ryu_meterconfig_info where id=#id#
+	</delete>
+
+	<delete id="delByCtrl_id" parameterClass="Integer">
+		delete from
+		ryu_meterconfig_info where ctrl_id=#ctrl_id#
+	</delete>
+
+	<delete id="delAll">
+		delete from ryu_meterconfig_info
+	</delete>
+</sqlMap>

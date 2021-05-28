@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Switch">
+
+	<typeAlias alias="Switch" type="cn.dlut.entity.Switch" />
+
+	<resultMap class="Switch" id="Switch">
+		<result property="id" column="id" />
+		<result property="ctrl_id" column="ctrl_id" />
+		<result property="dp_id" column="dp_id" />
+		<result property="n_tables" column="n_tables" />
+		<result property="dp_desc" column="dp_desc" />
+		<result property="sw_desc" column="sw_desc" />
+		<result property="hw_desc" column="hw_desc" />
+		<result property="serial_num" column="serial_num" />
+		<result property="mfr_desc" column="mfr_desc" />
+		<result property="ctime" column="ctime" />
+	</resultMap>
+
+	<select id="getAll" resultClass="Switch">
+		select * from s_switch_info
+	</select>
+
+	<!-- select by id -->
+	<select id="getById" resultClass="Switch" parameterClass="Integer">
+		select
+		*
+		from s_switch_info
+		where id=#id#
+	</select>
+
+	<!-- select by ctrl_id and dpid -->
+	<select id="getId" resultClass="Integer" parameterClass="java.util.Map">
+		select
+		id
+		from s_switch_info
+		where dp_id=#dp_id# and ctrl_id=#ctrl_id#
+	</select>
+
+
+	<!-- select switch by controllerid -->
+	<select id="getByControllerId" resultClass="Switch"
+		parameterClass="Integer">
+		select * from s_switch_info where ctrl_id=#ctrl_id#
+	</select>
+
+
+	<!-- delete by id -->
+	<delete id="delById" parameterClass="Integer">
+		delete from s_switch_info
+		where
+		id=#id#
+	</delete>
+
+	<!-- select by ctrl id -->
+	<delete id="delByCtrlId" parameterClass="Integer">
+		delete from
+		s_switch_info
+		where
+		ctrl_id=#ctrl_id#
+	</delete>
+
+	<!-- delete all entries ,
+	     2015-12-08 modified from delete to truncate-->
+	<delete id="delAll">
+		<!-- from s_switch_info-->
+	</delete>
+
+	<!-- insert -->
+	<insert id="insert" parameterClass="Switch">
+		insert into
+		s_switch_info(ctrl_id,dp_id,n_tables,dp_desc,sw_desc,hw_desc,serial_num,mfr_desc,ctime)
+		select
+		#ctrl_id#,#dp_id#,#n_tables#,#dp_desc#,#sw_desc#,#hw_desc#,#serial_num#,#mfr_desc#,#ctime#
+		from dual where not exists(select * 
+		from s_switch_info where ctrl_id=#ctrl_id# and dp_id=#dp_id#)
+	</insert>
+	
+	
+</sqlMap>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="RyuGroupFeatures">
+
+	<typeAlias alias="RyuGroupFeatures" type="cn.dlut.entity.RyuGroupFeatures" />
+
+	<resultMap class="RyuGroupFeatures" id="RyuGroupFeatures">
+		<result property="id" column="id" />
+		<result property="switch_id" column="switch_id" />
+		<result property="ctrl_id" column="ctrl_id" />
+		<result property="types" column="types" />
+		<result property="capabilities" column="capabilities" />
+		<result property="max_groups" column="max_groups" />
+		<result property="actions" column="actions" />
+		<result property="ctime" column="ctime" />
+	</resultMap>
+
+	<select id="getAll" resultClass="RyuGroupFeatures">
+		select * from
+		ryu_groupfeatures_info
+	</select>
+
+	<!-- select by id -->
+	<select id="getById" resultClass="RyuGroupFeatures"
+		parameterClass="Integer">
+		select * from ryu_groupfeatures_info where id=#id#
+	</select>
+
+	<!-- delete by id -->
+	<delete id="delById" parameterClass="Integer">
+		delete from
+		ryu_groupfeatures_info where id=#id#
+	</delete>
+
+	<!-- delete all -->
+	<delete id="delAll">
+		delete from ryu_groupfeatures_info
+		<!--truncate s_flow_info; -->
+	</delete>
+
+	<!-- insert -->
+	<insert id="insert" parameterClass="RyuGroupFeatures">
+		insert into
+		ryu_groupfeatures_info(switch_id,ctrl_id,types,capabilities,max_groups,actions,ctime)
+		select
+		#switch_id#,#ctrl_id#,#types#,#capabilities#,#max_groups#,#actions#,#ctime#
+		from dual where not exists(select
+		switch_id,ctrl_id,types,capabilities,max_groups,actions from
+		ryu_groupfeatures_info where switch_id=#switch_id# and ctrl_id=#ctrl_id# and
+		types=#types# and capabilities=#capabilities# and
+		max_groups=#max_groups# and actions=#actions#)
+	</insert>
+
+	<delete id="delByCtrl_id" parameterClass="Integer">
+		delete from ryu_groupfeatures_info where ctrl_id=#ctrl_id#
+	</delete>
+
+</sqlMap>

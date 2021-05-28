@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<utils:MyTitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
+					 xmlns:utils="utils.*"
+					 xmlns:cdg="view.*"
+					 layout="vertical"
+					 initialize="init1()" width="850" height="600" 
+					 close="this.parent.removeChild(this)" showCloseButton="true"
+					 verticalScrollPolicy="auto" horizontalScrollPolicy="auto" dropShadowVisible="true">
+	
+	<fx:Declarations>		
+		<mx:RemoteObject id="FlowEntryService" destination="FlowEntryService" >  
+			<mx:method name="queryFlowEntry" result="QueryResult(event)"/>
+		</mx:RemoteObject>	
+	</fx:Declarations>
+	
+
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.KeepOnly; 
+			
+			
+			//current switchid related flowlist
+			[Bindable]
+			private var flowlist_ac:ArrayCollection=new ArrayCollection();
+			//all flow related flowlist
+			[Bindable]
+			private var flowlist_this:ArrayCollection=new ArrayCollection();
+			
+			//current switchid
+			[Bindable]
+			private var dpID:String;
+			
+			
+			protected function init1():void{
+				dpID = FlexGlobals.topLevelApplication.activeItem.getDp_id();
+				this.title="switch"+"-flow table";
+				
+				var switchDp_id:String;
+				switchDp_id=FlexGlobals.topLevelApplication.activeItem.getDp_id();
+				
+				var controllerType:String;
+				
+				var controllerId:int;
+				var controllertypeId:int; //controller type id 1:Floodlight  0:Ryu
+				//get current switch related controller ID
+				controllerId=FlexGlobals.topLevelApplication.activeItem.getCrl_id();
+				
+				
+				var temp:ArrayCollection = FlexGlobals.topLevelApplication.ac_controller;
+				//get controller type by controller id
+				for(var i:int = 0;i<temp.length;i++){
+					if(temp[i].id==controllerId){
+						controllerType=temp[i].type;
+						break;
+					}
+				}
+				//set switch DP_id and related controller type
+				if(controllerType=="Floodlight")
+				{
+					controllertypeId=1;
+					//Alert.show(switchDp_id);
+					//remove ":" in switch dp_id
+					var arr:Array=new Array();
+					arr = switchDp_id.split(':');
+					switchDp_id= arr[0].toString();
+					for(var f_num:int = 1;f_num<8;f_num++)
+					{
+						switchDp_id=switchDp_id+arr[f_num].toString();
+					}
+				}
+				else if(controllerType=="Ryu")
+				{
+					controllertypeId=0;
+					switchDp_id="000000000000000"+switchDp_id;
+				}
+				
+				//Alert.show(""+dpID);
+				//call backend function to get flow table, only floodlight support
+			    FlowEntryService.queryFlowEntry(controllertypeId,dpID,controllerId);
+				
+				this.addEventListener(Event.RESIZE, titleWindowResized);
+			}
+			
+			
+			
+			
+			//call once when popping up window, then call at the moment of zooming
+			protected function titleWindowResized(event:Event):void{
+				
+				this.addEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+			//finished when zooming once, call at the moment of mouse up
+			protected function resizeCompleted(event:MouseEvent):void{
+				
+				this.removeEventListener(MouseEvent.MOUSE_UP, resizeCompleted);
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			
+			public function QueryResult(event:ResultEvent):void{
+				flowlist_this = event.result as ArrayCollection;
+				flowlistDG.InitData(flowlist_this);
+			}
+		]]>
+	</fx:Script>
+	
+	
+	
+	<!--  pageCount: entry number per page,default 20 -->
+	<cdg:CustomDataGrid id="flowlistDG" width="4500">
+		<cdg:columns>
+			<s:ArrayList>
+				<!--<s:GridColumn dataField="id" headerText="FlowID"></s:GridColumn>   -->
+				<!--    	<s:GridColumn dataField="switch_id" headerText="SwitchID"></s:GridColumn>   -->
+				<s:GridColumn dataField="table_id" headerText="TableID"></s:GridColumn>
+				<s:GridColumn dataField="byte_count" headerText="ByteCount"></s:GridColumn>
+				<s:GridColumn dataField="packet_count" headerText="PacketCount"></s:GridColumn>
+				<s:GridColumn dataField="idle_timeout" headerText="IdleTimeout"></s:GridColumn>
+				<s:GridColumn dataField="hard_timeout" headerText="HardTimeout"></s:GridColumn>
+				<s:GridColumn dataField="duration_sec" headerText="DurationSecond"></s:GridColumn>
+				<s:GridColumn dataField="duration_nsec" headerText="DurationNanosecond"></s:GridColumn>
+				<s:GridColumn dataField="priority" headerText="Priority"></s:GridColumn> 
+				<s:GridColumn dataField="cookie" headerText="Cookie"></s:GridColumn> 
+				<s:GridColumn dataField="dl_type" headerText="DlType"></s:GridColumn>
+				<s:GridColumn dataField="dl_src" headerText="DlSource"></s:GridColumn>
+				<s:GridColumn dataField="dl_dst" headerText="DlDestination"></s:GridColumn>
+				<s:GridColumn dataField="dl_vlan" headerText="DlVlan"></s:GridColumn>
+				<s:GridColumn dataField="nw_proto" headerText="NwProtocol"></s:GridColumn>
+				<s:GridColumn dataField="nw_tos" headerText="NwTos"></s:GridColumn>
+				<s:GridColumn dataField="nw_src" headerText="NwSource"></s:GridColumn>
+				<s:GridColumn dataField="nw_dst" headerText="NwDestination"></s:GridColumn>
+				<s:GridColumn dataField="nw_src_masklen" headerText="NwSourceMasklen"></s:GridColumn>
+				<s:GridColumn dataField="nw_dst_masklen" headerText="NwDestinationMasklen"></s:GridColumn>
+				<s:GridColumn dataField="tp_src" headerText="TpSource"></s:GridColumn>
+				<s:GridColumn dataField="tp_dst" headerText="TpDestination"></s:GridColumn>
+				<s:GridColumn dataField="in_port" headerText="InPort"></s:GridColumn>
+				<s:GridColumn dataField="action" headerText="Action"></s:GridColumn>
+				<s:GridColumn dataField="ctime" headerText="CreatedTime"></s:GridColumn>
+			</s:ArrayList>
+		</cdg:columns>
+	</cdg:CustomDataGrid>
+	
+	
+</utils:MyTitleWindow>

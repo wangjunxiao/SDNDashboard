@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="RyuMeterStats">
+
+	<typeAlias alias="RyuMeterStats" type="cn.dlut.entity.RyuMeterStats" />
+
+
+	<resultMap class="RyuMeterStats" id="RyuMeterStats">
+		<result property="id" column="id" />
+		<result property="switch_id" column="switch_id" />
+		<result property="ctrl_id" column="ctrl_id" />
+		<result property="meter_id" column="meter_id" />
+		<result property="len" column="len" />
+		<result property="flow_count" column="flow_count" />
+		<result property="packet_in_count" column="packet_in_count" />
+		<result property="byte_in_count" column="byte_in_count" />
+		<result property="duration_sec" column="duration_sec" />
+		<result property="duration_nsec" column="duration_nsec" />
+		<result property="band_stats" column="band_stats" />
+		<result property="ctime" column="ctime" />
+	</resultMap>
+
+	<select id="getAll" resultClass="RyuMeterStats">
+		select * from ryu_meter_info
+	</select>
+
+	<select id="getById" resultClass="RyuMeterStats" parameterClass="Integer">
+		select * from ryu_meter_info where id=#id#
+	</select>
+
+	<insert id="insert" parameterClass="RyuMeterStats">
+		insert into
+		ryu_meter_info(switch_id,ctrl_id,meter_id,len,flow_count,packet_in_count,byte_in_count,duration_sec,duration_nsec,band_stats,ctime)
+		select
+		#switch_id#,#ctrl_id#,#meter_id#,#len#,#flow_count#,#packet_in_count#,#byte_in_count#,#duration_sec#,#duration_nsec#,#band_stats#,#ctime#
+		from dual where not exists(select
+		switch_id,ctrl_id,meter_id,len,flow_count,packet_in_count,byte_in_count,duration_sec,duration_nsec,band_stats
+		from ryu_meter_info where switch_id=#switch_id# and ctrl_id=#ctrl_id# and
+		meter_id=#meter_id# and len=#len# and flow_count=#flow_count# and
+		packet_in_count=#packet_in_count# and byte_in_count=#byte_in_count#
+		and duration_sec=#duration_sec# and duration_nsec=#duration_nsec# and
+		band_stats=#band_stats#)
+	</insert>
+
+	<delete id="delById" parameterClass="Integer">
+		delete from ryu_meter_info
+		where id=#id#
+	</delete>
+
+	<delete id="delByCtrl_id" parameterClass="Integer">
+		delete from
+		ryu_meter_info where ctrl_id=#ctrl_id#
+	</delete>
+
+	<delete id="delAll">
+		delete from ryu_meter_info
+	</delete>
+
+</sqlMap>
