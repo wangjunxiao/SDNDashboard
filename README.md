@@ -4,7 +4,7 @@
 >![overview](overview.PNG)
 >
 
-The sdnbox is a heterogeneous openflow network management platform, developed by vnetlab team in dlut. You can manipulate any in-ready openflow network on the platform, just make sure the network's control plane API be compatible with sdnbox. The sdnbox so far works fine with common openflow API, su floodlight, ryu as underlying network operational system.
+The sdnbox is a openflow based network management platform, developed by vnetlab team in dlut. You can manipulate any in-ready openflow network on the platform, just make sure your network's controller API be compatible with sdnbox. The sdnbox so far works fine with controllers like floodlight and ryu, supporting OpenFlow 1.0 protocol.
 
 # Features
 
